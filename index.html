@@ -1575,8 +1575,8 @@
             const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch'];
             const allStores = Array.from(dataA.stores).filter(s => s !== 'all').sort((a, b) => a - b);
             
-            // 添加週數顯示
-            let tableHTML = `<div style="text-align: center; color: #6b7280; margin-bottom: 15px; font-size: 0.95em;">對比週數：W1-W${comparableWeeks}</div>`;
+            // 添加週數顯示，字體增大3px
+            let tableHTML = `<div style="text-align: center; color: #6b7280; margin-bottom: 15px; font-size: 1.15em;">對比週數：W1-W${comparableWeeks}</div>`;
             tableHTML += '<table class="growth-table"><thead>';
             
             // 第一層表頭
@@ -1627,26 +1627,30 @@
                     const avgWeeklyB = Math.round(qtyB / comparableWeeks);
                     
                     const growth = qtyA > 0 ? (((qtyB - qtyA) / qtyA) * 100) : (qtyB > 0 ? 100 : 0);
-                    const growthClass = growth >= 0 ? 'positive-growth' : 'negative-growth';
+                    const growthColor = growth >= 0 ? '#22c55e' : '#ef4444';
                     const arrow = growth >= 0 ? '+' : '';
+                    
+                    // 對比B的平均週銷顏色（與對比A比較）
+                    const avgGrowth = avgWeeklyA > 0 ? (((avgWeeklyB - avgWeeklyA) / avgWeeklyA) * 100) : 0;
+                    const avgWeeklyColorB = avgGrowth >= 0 ? '#22c55e' : '#ef4444';
                     
                     const borderStyle = index < allStores.length - 1 ? 'border-right: 3px solid #cbd5e1;' : '';
                     
-                    tableHTML += `<td>${qtyA.toLocaleString()} <span style="color: #9ca3af; font-size: 0.9em;">(${avgWeeklyA})</span></td>`;
-                    tableHTML += `<td>${qtyB.toLocaleString()} <span style="color: #9ca3af; font-size: 0.9em;">(${avgWeeklyB})</span></td>`;
-                    tableHTML += `<td class="${growthClass}" style="${borderStyle}">${arrow}${Math.round(growth)}%</td>`;
+                    tableHTML += `<td>${qtyA.toLocaleString()}<br><span style="color: #9ca3af; font-size: 0.85em;">(${avgWeeklyA})</span></td>`;
+                    tableHTML += `<td>${qtyB.toLocaleString()}<br><span style="color: ${avgWeeklyColorB}; font-size: 0.85em;">(${avgWeeklyB})</span></td>`;
+                    tableHTML += `<td style="color: ${growthColor}; font-weight: bold; ${borderStyle}">${arrow}${Math.round(growth)}%</td>`;
                 });
                 
                 // 平均週銷欄位
                 const avgWeeklySalesA = Math.round(totalQtyA / allStores.length / comparableWeeks);
                 const avgWeeklySalesB = Math.round(totalQtyB / allStores.length / comparableWeeks);
                 const avgGrowth = avgWeeklySalesA > 0 ? (((avgWeeklySalesB - avgWeeklySalesA) / avgWeeklySalesA) * 100) : (avgWeeklySalesB > 0 ? 100 : 0);
-                const avgGrowthClass = avgGrowth >= 0 ? 'positive-growth' : 'negative-growth';
+                const avgGrowthColor = avgGrowth >= 0 ? '#22c55e' : '#ef4444';
                 const avgArrow = avgGrowth >= 0 ? '+' : '';
                 
                 tableHTML += `<td style="font-weight: bold; background: #eff6ff; border-left: 3px solid #cbd5e1;">${avgWeeklySalesA.toLocaleString()}</td>`;
                 tableHTML += `<td style="font-weight: bold; background: #eff6ff;">${avgWeeklySalesB.toLocaleString()}</td>`;
-                tableHTML += `<td class="${avgGrowthClass}" style="font-weight: bold; background: #eff6ff;">${avgArrow}${Math.round(avgGrowth)}%</td>`;
+                tableHTML += `<td style="color: ${avgGrowthColor}; font-weight: bold;">${avgArrow}${Math.round(avgGrowth)}%</td>`;
                 
                 tableHTML += '</tr>';
             });
