@@ -1575,26 +1575,30 @@
             const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch'];
             const allStores = Array.from(dataA.stores).filter(s => s !== 'all').sort((a, b) => a - b);
             
-            let tableHTML = '<table class="growth-table"><thead>';
+            // 添加週數顯示
+            let tableHTML = `<div style="text-align: center; color: #6b7280; margin-bottom: 15px; font-size: 0.95em;">對比週數：W1-W${comparableWeeks}</div>`;
+            tableHTML += '<table class="growth-table"><thead>';
             
             // 第一層表頭
             tableHTML += '<tr><th rowspan="2" style="vertical-align: middle;">品項</th>';
-            allStores.forEach(store => {
-                tableHTML += `<th colspan="3" class="store-header">${store}</th>`;
+            allStores.forEach((store, index) => {
+                const borderStyle = index < allStores.length - 1 ? 'border-right: 3px solid #cbd5e1;' : '';
+                tableHTML += `<th colspan="3" class="store-header" style="${borderStyle}">${store}</th>`;
             });
-            tableHTML += '<th colspan="3" class="store-header">平均</th>';
+            tableHTML += '<th colspan="3" class="store-header" style="border-left: 3px solid #cbd5e1;">平均</th>';
             tableHTML += '</tr>';
             
             // 第二層表頭
             tableHTML += '<tr>';
             // 各門市表頭
-            for (let i = 0; i < allStores.length; i++) {
+            allStores.forEach((store, index) => {
+                const borderStyle = index < allStores.length - 1 ? 'border-right: 3px solid #cbd5e1;' : '';
                 tableHTML += `<th style="background: #60a5fa;">${fileNameA}</th>`;
                 tableHTML += `<th style="background: #60a5fa;">${fileNameB}</th>`;
-                tableHTML += '<th style="background: #60a5fa;">QoQ %</th>';
-            }
+                tableHTML += `<th style="background: #60a5fa; ${borderStyle}">QoQ %</th>`;
+            });
             // 平均欄表頭
-            tableHTML += `<th style="background: #60a5fa;">${fileNameA}<br>平均週銷</th>`;
+            tableHTML += `<th style="background: #60a5fa; border-left: 3px solid #cbd5e1;">${fileNameA}<br>平均週銷</th>`;
             tableHTML += `<th style="background: #60a5fa;">${fileNameB}<br>平均週銷</th>`;
             tableHTML += '<th style="background: #60a5fa;">QoQ %</th>';
             tableHTML += '</tr></thead><tbody>';
@@ -1606,7 +1610,7 @@
                 let totalQtyB = 0;
                 
                 // 各門市數據
-                allStores.forEach(store => {
+                allStores.forEach((store, index) => {
                     const qtyA = dataA.data
                         .filter(d => d.store == store && d.class === product && d.weekNum <= comparableWeeks)
                         .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
@@ -1618,13 +1622,19 @@
                     totalQtyA += qtyA;
                     totalQtyB += qtyB;
                     
+                    // 計算平均週銷
+                    const avgWeeklyA = Math.round(qtyA / comparableWeeks);
+                    const avgWeeklyB = Math.round(qtyB / comparableWeeks);
+                    
                     const growth = qtyA > 0 ? (((qtyB - qtyA) / qtyA) * 100) : (qtyB > 0 ? 100 : 0);
                     const growthClass = growth >= 0 ? 'positive-growth' : 'negative-growth';
                     const arrow = growth >= 0 ? '+' : '';
                     
-                    tableHTML += `<td>${qtyA.toLocaleString()}</td>`;
-                    tableHTML += `<td>${qtyB.toLocaleString()}</td>`;
-                    tableHTML += `<td class="${growthClass}">${arrow}${Math.round(growth)}%</td>`;
+                    const borderStyle = index < allStores.length - 1 ? 'border-right: 3px solid #cbd5e1;' : '';
+                    
+                    tableHTML += `<td>${qtyA.toLocaleString()} <span style="color: #9ca3af; font-size: 0.9em;">(${avgWeeklyA})</span></td>`;
+                    tableHTML += `<td>${qtyB.toLocaleString()} <span style="color: #9ca3af; font-size: 0.9em;">(${avgWeeklyB})</span></td>`;
+                    tableHTML += `<td class="${growthClass}" style="${borderStyle}">${arrow}${Math.round(growth)}%</td>`;
                 });
                 
                 // 平均週銷欄位
@@ -1634,7 +1644,7 @@
                 const avgGrowthClass = avgGrowth >= 0 ? 'positive-growth' : 'negative-growth';
                 const avgArrow = avgGrowth >= 0 ? '+' : '';
                 
-                tableHTML += `<td style="font-weight: bold; background: #eff6ff;">${avgWeeklySalesA.toLocaleString()}</td>`;
+                tableHTML += `<td style="font-weight: bold; background: #eff6ff; border-left: 3px solid #cbd5e1;">${avgWeeklySalesA.toLocaleString()}</td>`;
                 tableHTML += `<td style="font-weight: bold; background: #eff6ff;">${avgWeeklySalesB.toLocaleString()}</td>`;
                 tableHTML += `<td class="${avgGrowthClass}" style="font-weight: bold; background: #eff6ff;">${avgArrow}${Math.round(avgGrowth)}%</td>`;
                 
