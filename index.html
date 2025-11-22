@@ -486,24 +486,26 @@
                 </div>
                 <div id="tradeinStoreTitle" style="text-align: center; color: #1e40af; font-size: 1.2em; margin-bottom: 20px; font-weight: bold;"></div>
                 
-                <div style="margin-bottom: 30px;">
-                    <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;" id="tradeinTitleA">對比A</h3>
-                    <div style="display: flex; gap: 20px; align-items: flex-start;">
-                        <div class="chart-container" style="flex: 1; height: 450px;">
+                <!-- 圖表區域 - 左右並排 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div>
+                        <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;" id="tradeinTitleA">對比A</h3>
+                        <div class="chart-container" style="height: 450px;">
                             <canvas id="tradeinChartA"></canvas>
                         </div>
-                        <div id="tradeinTableA" style="flex: 0 0 400px; overflow-x: auto;"></div>
+                    </div>
+                    <div>
+                        <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;" id="tradeinTitleB">對比B</h3>
+                        <div class="chart-container" style="height: 450px;">
+                            <canvas id="tradeinChartB"></canvas>
+                        </div>
                     </div>
                 </div>
                 
-                <div>
-                    <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;" id="tradeinTitleB">對比B</h3>
-                    <div style="display: flex; gap: 20px; align-items: flex-start;">
-                        <div class="chart-container" style="flex: 1; height: 450px;">
-                            <canvas id="tradeinChartB"></canvas>
-                        </div>
-                        <div id="tradeinTableB" style="flex: 0 0 400px; overflow-x: auto;"></div>
-                    </div>
+                <!-- 數據摘要區域 - 左右並排 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div id="tradeinTableA"></div>
+                    <div id="tradeinTableB"></div>
                 </div>
             </div>
             
@@ -810,14 +812,75 @@
             document.getElementById('tradeinTitleA').textContent = `${fileNameA} - Trade-in % Program`;
             document.getElementById('tradeinTitleB').textContent = `${fileNameB} - Trade-in % Program`;
             
+            // 計算兩個數據集的全局Y軸範圍
+            const comparableWeeks = Math.max(dataA.maxWeek, dataB.maxWeek);
+            let globalMaxRate = 0;
+            let globalMaxQty = 0;
+            
+            // 計算對比A的最大值
+            for (let week = 1; week <= dataA.maxWeek; week++) {
+                let iphoneQty = 0;
+                let tradeinQty = 0;
+                
+                if (selectedStore === 'all') {
+                    iphoneQty = dataA.data
+                        .filter(d => d.weekNum === week && d.class === 'iPhone')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                    tradeinQty = dataA.data
+                        .filter(d => d.weekNum === week && d.class === 'Trade in')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                } else {
+                    iphoneQty = dataA.data
+                        .filter(d => d.store == selectedStore && d.weekNum === week && d.class === 'iPhone')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                    tradeinQty = dataA.data
+                        .filter(d => d.store == selectedStore && d.weekNum === week && d.class === 'Trade in')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                }
+                
+                const rate = iphoneQty > 0 ? ((tradeinQty / iphoneQty) * 100) : 0;
+                globalMaxRate = Math.max(globalMaxRate, rate);
+                globalMaxQty = Math.max(globalMaxQty, iphoneQty + tradeinQty);
+            }
+            
+            // 計算對比B的最大值
+            for (let week = 1; week <= dataB.maxWeek; week++) {
+                let iphoneQty = 0;
+                let tradeinQty = 0;
+                
+                if (selectedStore === 'all') {
+                    iphoneQty = dataB.data
+                        .filter(d => d.weekNum === week && d.class === 'iPhone')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                    tradeinQty = dataB.data
+                        .filter(d => d.weekNum === week && d.class === 'Trade in')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                } else {
+                    iphoneQty = dataB.data
+                        .filter(d => d.store == selectedStore && d.weekNum === week && d.class === 'iPhone')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                    tradeinQty = dataB.data
+                        .filter(d => d.store == selectedStore && d.weekNum === week && d.class === 'Trade in')
+                        .reduce((sum, d) => sum + (parseFloat(d.qty) || 0), 0);
+                }
+                
+                const rate = iphoneQty > 0 ? ((tradeinQty / iphoneQty) * 100) : 0;
+                globalMaxRate = Math.max(globalMaxRate, rate);
+                globalMaxQty = Math.max(globalMaxQty, iphoneQty + tradeinQty);
+            }
+            
+            // 計算統一的Y軸最大值
+            const yAxisMaxRate = Math.max(25, Math.ceil(globalMaxRate * 1.3));
+            const yAxisMaxQty = Math.ceil(globalMaxQty * 1.15);
+            
             // 創建對比A的Trade in圖表
-            createTradeinChart('tradeinChartA', 'tradeinTableA', dataA, fileNameA);
+            createTradeinChart('tradeinChartA', 'tradeinTableA', dataA, fileNameA, yAxisMaxRate, yAxisMaxQty);
             
             // 創建對比B的Trade in圖表
-            createTradeinChart('tradeinChartB', 'tradeinTableB', dataB, fileNameB);
+            createTradeinChart('tradeinChartB', 'tradeinTableB', dataB, fileNameB, yAxisMaxRate, yAxisMaxQty);
         }
         
-        function createTradeinChart(canvasId, tableId, data, title) {
+        function createTradeinChart(canvasId, tableId, data, title, yAxisMaxRate, yAxisMaxQty) {
             const comparableWeeks = data.maxWeek;
             const weeks = Array.from({length: comparableWeeks}, (_, i) => `W${i + 1}`);
             
@@ -869,9 +932,6 @@
             const minRate = Math.min(...recallRateData);
             const maxRateIndex = recallRateData.indexOf(maxRate);
             const minRateIndex = recallRateData.indexOf(minRate);
-            
-            // 動態計算Y軸最大值，確保標籤不會超出
-            const yAxisMaxRate = Math.max(25, Math.ceil(maxRate * 1.3)); // 最小25%，或最大值的1.3倍
             
             const ctx = document.getElementById(canvasId).getContext('2d');
             
@@ -1027,6 +1087,7 @@
                             position: 'left',
                             stacked: true,
                             beginAtZero: true,
+                            max: yAxisMaxQty,
                             title: {
                                 display: true,
                                 text: '數量 (台)',
