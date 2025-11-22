@@ -418,6 +418,12 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 數據摘要 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                    <div id="trafficTableA"></div>
+                    <div id="trafficTableB"></div>
+                </div>
             </div>
             
             <!-- 銷售數據分析 -->
@@ -701,6 +707,95 @@
             
             // 創建對比B的人流圖表
             createTrafficChart('trafficChartB', dataB, storesToShow, fileNameB, yAxisMin, yAxisMax);
+            
+            // 創建數據摘要表格
+            createTrafficSummaryTable('trafficTableA', dataA, storesToShow, fileNameA);
+            createTrafficSummaryTable('trafficTableB', dataB, storesToShow, fileNameB);
+        }
+        
+        function createTrafficSummaryTable(tableId, data, stores, title) {
+            const maxWeek = data.maxWeek;
+            
+            // 先收集每家门市的所有数据，找出最高和最低值
+            const storeData = {};
+            stores.forEach(store => {
+                storeData[store] = [];
+                for (let week = 1; week <= maxWeek; week++) {
+                    const weekData = data.data.find(d => 
+                        d.store === store && 
+                        d.class === 'Traffic' && 
+                        d.weekNum === week
+                    );
+                    const qty = weekData ? weekData.qty : 0;
+                    storeData[store].push(qty);
+                }
+            });
+            
+            // 找出每家门市的最高和最低值
+            const storeMaxMin = {};
+            stores.forEach(store => {
+                const values = storeData[store].filter(v => v > 0);
+                storeMaxMin[store] = {
+                    max: Math.max(...values),
+                    min: Math.min(...values)
+                };
+            });
+            
+            let tableHTML = `
+                <h4 style="color: #1e40af; margin-bottom: 10px;">數據摘要 - ${title}</h4>
+                <table class="growth-table">
+                    <thead>
+                        <tr>
+                            <th>週數</th>
+                            <th>日期區間</th>`;
+            
+            stores.forEach(store => {
+                tableHTML += `<th>${store}</th>`;
+            });
+            
+            if (stores.length > 1) {
+                tableHTML += '<th>總計</th>';
+            }
+            
+            tableHTML += `</tr>
+                    </thead>
+                    <tbody>`;
+            
+            for (let week = 1; week <= maxWeek; week++) {
+                tableHTML += `<tr>
+                    <td style="font-weight: bold;">W${week}</td>
+                    <td>${data.weekDates[week] || ''}</td>`;
+                
+                let weekTotal = 0;
+                stores.forEach(store => {
+                    const weekData = data.data.find(d => 
+                        d.store === store && 
+                        d.class === 'Traffic' && 
+                        d.weekNum === week
+                    );
+                    const qty = weekData ? weekData.qty : 0;
+                    weekTotal += qty;
+                    
+                    // 根据是否为最高或最低值设置颜色
+                    let color = '#000';
+                    if (qty === storeMaxMin[store].max && qty > 0) {
+                        color = '#ef4444';  // 红色 - 最高
+                    } else if (qty === storeMaxMin[store].min && qty > 0) {
+                        color = '#3b82f6';  // 蓝色 - 最低
+                    }
+                    
+                    tableHTML += `<td style="color: ${color}; font-weight: ${qty === storeMaxMin[store].max || qty === storeMaxMin[store].min ? 'bold' : 'normal'};">${qty.toLocaleString()}</td>`;
+                });
+                
+                if (stores.length > 1) {
+                    tableHTML += `<td style="font-weight: bold;">${weekTotal.toLocaleString()}</td>`;
+                }
+                
+                tableHTML += '</tr>';
+            }
+            
+            tableHTML += `</tbody></table>`;
+            document.getElementById(tableId).innerHTML = tableHTML;
         }
         
         function createTrafficChart(canvasId, data, stores, title, yMin, yMax) {
@@ -718,6 +813,12 @@
                     trafficData.push(weekData ? weekData.qty : 0);
                 }
                 
+                // 找出最高和最低值的索引
+                const maxValue = Math.max(...trafficData);
+                const minValue = Math.min(...trafficData.filter(v => v > 0));
+                const maxIndex = trafficData.indexOf(maxValue);
+                const minIndex = trafficData.indexOf(minValue);
+                
                 return {
                     label: `${store}`,
                     data: trafficData,
@@ -725,9 +826,33 @@
                     backgroundColor: storeColors[store] + '20',
                     tension: 0.4,
                     fill: false,
-                    pointRadius: 5,
-                    pointHoverRadius: 7,
+                    pointRadius: function(context) {
+                        const index = context.dataIndex;
+                        if (index === maxIndex || index === minIndex) return 7;
+                        return 4;
+                    },
+                    pointHoverRadius: 9,
                     borderWidth: 3,
+                    pointStyle: function(context) {
+                        const index = context.dataIndex;
+                        if (index === maxIndex) return 'rect';  // 正方形
+                        if (index === minIndex) return 'triangle';  // 倒三角形
+                        return 'circle';  // 圆形
+                    },
+                    pointBackgroundColor: function(context) {
+                        const index = context.dataIndex;
+                        if (index === maxIndex || index === minIndex) {
+                            return storeColors[store];  // 实心
+                        }
+                        return 'rgba(255, 255, 255, 0)';  // 空心（透明）
+                    },
+                    pointBorderColor: storeColors[store],
+                    pointBorderWidth: 2,
+                    pointRotation: function(context) {
+                        const index = context.dataIndex;
+                        if (index === minIndex) return 180;  // 倒三角形旋转180度
+                        return 0;
+                    },
                     datalabels: {
                         display: false
                     }
