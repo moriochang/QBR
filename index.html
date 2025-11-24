@@ -279,6 +279,18 @@
             font-size: 14px;
         }
         
+        .growth-table th:nth-child(1),
+        .growth-table td:nth-child(1) {
+            width: 70px;
+            min-width: 70px;
+        }
+        
+        .growth-table th:nth-child(2),
+        .growth-table td:nth-child(2) {
+            width: 140px;
+            min-width: 140px;
+        }
+        
         .growth-table th {
             background: #1e40af;
             color: white;
@@ -747,7 +759,7 @@
                     <thead>
                         <tr>
                             <th>Week</th>
-                            <th>日期區間</th>`;
+                            <th style="${stores.length > 1 ? 'width: 110px; min-width: 110px;' : ''}">日期區間</th>`;
             
             stores.forEach(store => {
                 tableHTML += `<th>${store}</th>`;
@@ -757,6 +769,11 @@
                 tableHTML += '<th>總計</th>';
             }
             
+            // 单个门市时，统一增加增长率列
+            if (stores.length === 1) {
+                tableHTML += '<th style="background: #3b82f6; color: white;">增長率</th>';
+            }
+            
             tableHTML += `</tr>
                     </thead>
                     <tbody>`;
@@ -764,10 +781,11 @@
             for (let week = 1; week <= maxWeek; week++) {
                 tableHTML += `<tr>
                     <td style="font-weight: bold; text-align: center;">W${week}</td>
-                    <td style="text-align: center;">${data.weekDates[week] || ''}</td>`;
+                    <td style="text-align: center;${stores.length > 1 ? ' width: 110px; min-width: 110px;' : ''}">${data.weekDates[week] || ''}</td>`;
                 
                 let weekTotal = 0;
                 let weekTotalCompare = 0;
+                let singleStoreGrowthData = null; // 存储单门市的增长率数据
                 
                 stores.forEach(store => {
                     const weekData = data.data.find(d => 
@@ -788,7 +806,7 @@
                     
                     let cellContent = `<span style="color: ${color}; font-weight: ${qty === storeMaxMin[store].max || qty === storeMaxMin[store].min ? 'bold' : 'normal'};">${qty.toLocaleString()}</span>`;
                     
-                    // 如果有比较数据，将增长率显示在数字下方
+                    // 如果有比较数据
                     if (compareData) {
                         const compareWeekData = compareData.data.find(d => 
                             d.store === store && 
@@ -802,36 +820,146 @@
                             const growth = ((qty - compareQty) / compareQty * 100).toFixed(1);
                             const growthNum = parseFloat(growth);
                             
-                            if (growthNum > 0) {
-                                cellContent += `<br><span style="color: #22c55e; font-weight: bold; font-size: 0.75em;">▲${growth}%</span>`;
-                            } else if (growthNum < 0) {
-                                cellContent += `<br><span style="color: #ef4444; font-weight: bold; font-size: 0.75em;">▼${Math.abs(growth)}%</span>`;
+                            if (stores.length === 1) {
+                                // 单门市：保存增长率数据，稍后在独立列显示
+                                singleStoreGrowthData = { growth, growthNum };
+                            } else if (growthNum !== 0) {
+                                // 多门市：将增长率显示在数字下方
+                                const isGrowth = growthNum > 0;
+                                const barColor = isGrowth ? '#22c55e' : '#ef4444';
+                                const barWidth = Math.min(Math.abs(growthNum), 100);
+                                const sign = isGrowth ? '+' : '-';
+                                
+                                cellContent += `
+                                    <br>
+                                    <div style="width: 100%; margin-top: 2px; display: flex; align-items: center;">
+                                        ${isGrowth ? `
+                                            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                                <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
+                                                    <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; right: 4px; line-height: 16px;">${sign}${Math.abs(growth)}%</span>
+                                                </div>
+                                            </div>
+                                            <div style="width: 2px; height: 18px; background: #6b7280;"></div>
+                                            <div style="flex: 1;"></div>
+                                        ` : `
+                                            <div style="flex: 1;"></div>
+                                            <div style="width: 2px; height: 18px; background: #6b7280;"></div>
+                                            <div style="flex: 1; display: flex; justify-content: flex-start;">
+                                                <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
+                                                    <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; left: 4px; line-height: 16px;">${sign}${Math.abs(growth)}%</span>
+                                                </div>
+                                            </div>
+                                        `}
+                                    </div>`;
                             }
                         }
-                    } else {
-                        // 对比A没有增长率，但添加占位空间以对齐列宽
-                        cellContent += `<br><span style="font-size: 0.75em; visibility: hidden;">-</span>`;
+                    } else if (stores.length > 1) {
+                        // 多门市的对比A：添加占位空间和中线以对齐列宽
+                        cellContent += `
+                            <br>
+                            <div style="width: 100%; margin-top: 2px; display: flex; align-items: center; height: 18px;">
+                                <div style="flex: 1;"></div>
+                                <div style="width: 2px; height: 18px; background: #d1d5db;"></div>
+                                <div style="flex: 1;"></div>
+                            </div>`;
                     }
                     
-                    tableHTML += `<td style="${compareData ? '' : 'text-align: center;'}">${cellContent}</td>`;
+                    tableHTML += `<td style="text-align: center;">${cellContent}</td>`;
                 });
+                
+                // 单门市时，在独立列显示增长率Bar Chart或占位
+                if (stores.length === 1) {
+                    if (compareData && singleStoreGrowthData) {
+                        const { growth, growthNum } = singleStoreGrowthData;
+                        
+                        if (growthNum !== 0) {
+                            const isGrowth = growthNum > 0;
+                            const barColor = isGrowth ? '#22c55e' : '#ef4444';
+                            const barWidth = Math.min(Math.abs(growthNum), 100);
+                            const sign = isGrowth ? '+' : '-';
+                            
+                            const growthCellContent = `
+                                <div style="width: 100%; display: flex; align-items: center;">
+                                    ${isGrowth ? `
+                                        <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                            <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px; position: relative;">
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; right: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
+                                            </div>
+                                        </div>
+                                        <div style="width: 2px; height: 22px; background: #6b7280;"></div>
+                                        <div style="flex: 1;"></div>
+                                    ` : `
+                                        <div style="flex: 1;"></div>
+                                        <div style="width: 2px; height: 22px; background: #6b7280;"></div>
+                                        <div style="flex: 1; display: flex; justify-content: flex-start;">
+                                            <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px; position: relative;">
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; left: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
+                                            </div>
+                                        </div>
+                                    `}
+                                </div>`;
+                            
+                            tableHTML += `<td>${growthCellContent}</td>`;
+                        } else {
+                            tableHTML += `<td style="text-align: center;">0.0%</td>`;
+                        }
+                    } else {
+                        // 对比A显示中线占位
+                        const placeholderContent = `
+                            <div style="width: 100%; display: flex; align-items: center; height: 22px;">
+                                <div style="flex: 1;"></div>
+                                <div style="width: 2px; height: 22px; background: #d1d5db;"></div>
+                                <div style="flex: 1;"></div>
+                            </div>`;
+                        tableHTML += `<td>${placeholderContent}</td>`;
+                    }
+                }
                 
                 if (stores.length > 1) {
                     let totalCellContent = `<span style="font-weight: bold;">${weekTotal.toLocaleString()}</span>`;
                     
-                    // 总计的增长率显示在数字下方
+                    // 总计的增长率显示在数字下方，带条状图
                     if (compareData && weekTotalCompare > 0) {
                         const totalGrowth = ((weekTotal - weekTotalCompare) / weekTotalCompare * 100).toFixed(1);
                         const totalGrowthNum = parseFloat(totalGrowth);
                         
-                        if (totalGrowthNum > 0) {
-                            totalCellContent += `<br><span style="color: #22c55e; font-weight: bold; font-size: 0.75em;">▲${totalGrowth}%</span>`;
-                        } else if (totalGrowthNum < 0) {
-                            totalCellContent += `<br><span style="color: #ef4444; font-weight: bold; font-size: 0.75em;">▼${Math.abs(totalGrowth)}%</span>`;
+                        if (totalGrowthNum !== 0) {
+                            const isGrowth = totalGrowthNum > 0;
+                            const barColor = isGrowth ? '#22c55e' : '#ef4444';
+                            const barWidth = Math.min(Math.abs(totalGrowthNum), 100);
+                            const sign = isGrowth ? '+' : '-';
+                            
+                            totalCellContent += `
+                                <br>
+                                <div style="width: 100%; margin-top: 2px; display: flex; align-items: center;">
+                                    ${isGrowth ? `
+                                        <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                            <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; right: 4px; line-height: 16px;">${sign}${Math.abs(totalGrowth)}%</span>
+                                            </div>
+                                        </div>
+                                        <div style="width: 2px; height: 18px; background: #6b7280;"></div>
+                                        <div style="flex: 1;"></div>
+                                    ` : `
+                                        <div style="flex: 1;"></div>
+                                        <div style="width: 2px; height: 18px; background: #6b7280;"></div>
+                                        <div style="flex: 1; display: flex; justify-content: flex-start;">
+                                            <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; left: 4px; line-height: 16px;">${sign}${Math.abs(totalGrowth)}%</span>
+                                            </div>
+                                        </div>
+                                    `}
+                                </div>`;
                         }
                     } else if (!compareData) {
-                        // 对比A没有增长率，但添加占位空间以对齐列宽
-                        totalCellContent += `<br><span style="font-size: 0.75em; visibility: hidden;">-</span>`;
+                        // 对比A没有增长率，但添加占位空间和中线以对齐列宽
+                        totalCellContent += `
+                            <br>
+                            <div style="width: 100%; margin-top: 2px; display: flex; align-items: center; height: 18px;">
+                                <div style="flex: 1;"></div>
+                                <div style="width: 2px; height: 18px; background: #d1d5db;"></div>
+                                <div style="flex: 1;"></div>
+                            </div>`;
                     }
                     
                     tableHTML += `<td style="${compareData ? '' : 'text-align: center;'}">${totalCellContent}</td>`;
