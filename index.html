@@ -746,7 +746,7 @@
                 <table class="growth-table">
                     <thead>
                         <tr>
-                            <th>週數</th>
+                            <th>Week</th>
                             <th>日期區間</th>`;
             
             stores.forEach(store => {
@@ -788,7 +788,7 @@
                     
                     let cellContent = `<span style="color: ${color}; font-weight: ${qty === storeMaxMin[store].max || qty === storeMaxMin[store].min ? 'bold' : 'normal'};">${qty.toLocaleString()}</span>`;
                     
-                    // 如果有比较数据，将增长率显示在数字右边
+                    // 如果有比较数据，将增长率显示在数字右边，文字很小
                     if (compareData) {
                         const compareWeekData = compareData.data.find(d => 
                             d.store === store && 
@@ -803,9 +803,9 @@
                             const growthNum = parseFloat(growth);
                             
                             if (growthNum > 0) {
-                                cellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.8em;">▲${growth}%</span>`;
+                                cellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.65em;">▲${growth}%</span>`;
                             } else if (growthNum < 0) {
-                                cellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.8em;">▼${Math.abs(growth)}%</span>`;
+                                cellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.65em;">▼${Math.abs(growth)}%</span>`;
                             }
                         }
                     }
@@ -816,15 +816,15 @@
                 if (stores.length > 1) {
                     let totalCellContent = `<span style="font-weight: bold;">${weekTotal.toLocaleString()}</span>`;
                     
-                    // 总计的增长率显示在数字右边
+                    // 总计的增长率显示在数字右边，文字很小
                     if (compareData && weekTotalCompare > 0) {
                         const totalGrowth = ((weekTotal - weekTotalCompare) / weekTotalCompare * 100).toFixed(1);
                         const totalGrowthNum = parseFloat(totalGrowth);
                         
                         if (totalGrowthNum > 0) {
-                            totalCellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.8em;">▲${totalGrowth}%</span>`;
+                            totalCellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.65em;">▲${totalGrowth}%</span>`;
                         } else if (totalGrowthNum < 0) {
-                            totalCellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.8em;">▼${Math.abs(totalGrowth)}%</span>`;
+                            totalCellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.65em;">▼${Math.abs(totalGrowth)}%</span>`;
                         }
                     }
                     
