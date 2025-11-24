@@ -763,8 +763,8 @@
             
             for (let week = 1; week <= maxWeek; week++) {
                 tableHTML += `<tr>
-                    <td style="font-weight: bold;">W${week}</td>
-                    <td>${data.weekDates[week] || ''}</td>`;
+                    <td style="font-weight: bold; text-align: center;">W${week}</td>
+                    <td style="text-align: center;">${data.weekDates[week] || ''}</td>`;
                 
                 let weekTotal = 0;
                 let weekTotalCompare = 0;
@@ -788,7 +788,7 @@
                     
                     let cellContent = `<span style="color: ${color}; font-weight: ${qty === storeMaxMin[store].max || qty === storeMaxMin[store].min ? 'bold' : 'normal'};">${qty.toLocaleString()}</span>`;
                     
-                    // 如果有比较数据，将增长率显示在数字右边，文字很小
+                    // 如果有比较数据，将增长率显示在数字下方
                     if (compareData) {
                         const compareWeekData = compareData.data.find(d => 
                             d.store === store && 
@@ -803,32 +803,38 @@
                             const growthNum = parseFloat(growth);
                             
                             if (growthNum > 0) {
-                                cellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.65em;">▲${growth}%</span>`;
+                                cellContent += `<br><span style="color: #22c55e; font-weight: bold; font-size: 0.75em;">▲${growth}%</span>`;
                             } else if (growthNum < 0) {
-                                cellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.65em;">▼${Math.abs(growth)}%</span>`;
+                                cellContent += `<br><span style="color: #ef4444; font-weight: bold; font-size: 0.75em;">▼${Math.abs(growth)}%</span>`;
                             }
                         }
+                    } else {
+                        // 对比A没有增长率，但添加占位空间以对齐列宽
+                        cellContent += `<br><span style="font-size: 0.75em; visibility: hidden;">-</span>`;
                     }
                     
-                    tableHTML += `<td>${cellContent}</td>`;
+                    tableHTML += `<td style="${compareData ? '' : 'text-align: center;'}">${cellContent}</td>`;
                 });
                 
                 if (stores.length > 1) {
                     let totalCellContent = `<span style="font-weight: bold;">${weekTotal.toLocaleString()}</span>`;
                     
-                    // 总计的增长率显示在数字右边，文字很小
+                    // 总计的增长率显示在数字下方
                     if (compareData && weekTotalCompare > 0) {
                         const totalGrowth = ((weekTotal - weekTotalCompare) / weekTotalCompare * 100).toFixed(1);
                         const totalGrowthNum = parseFloat(totalGrowth);
                         
                         if (totalGrowthNum > 0) {
-                            totalCellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.65em;">▲${totalGrowth}%</span>`;
+                            totalCellContent += `<br><span style="color: #22c55e; font-weight: bold; font-size: 0.75em;">▲${totalGrowth}%</span>`;
                         } else if (totalGrowthNum < 0) {
-                            totalCellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.65em;">▼${Math.abs(totalGrowth)}%</span>`;
+                            totalCellContent += `<br><span style="color: #ef4444; font-weight: bold; font-size: 0.75em;">▼${Math.abs(totalGrowth)}%</span>`;
                         }
+                    } else if (!compareData) {
+                        // 对比A没有增长率，但添加占位空间以对齐列宽
+                        totalCellContent += `<br><span style="font-size: 0.75em; visibility: hidden;">-</span>`;
                     }
                     
-                    tableHTML += `<td>${totalCellContent}</td>`;
+                    tableHTML += `<td style="${compareData ? '' : 'text-align: center;'}">${totalCellContent}</td>`;
                 }
                 
                 tableHTML += '</tr>';
