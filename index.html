@@ -710,10 +710,10 @@
             
             // 創建數據摘要表格
             createTrafficSummaryTable('trafficTableA', dataA, storesToShow, fileNameA);
-            createTrafficSummaryTable('trafficTableB', dataB, storesToShow, fileNameB);
+            createTrafficSummaryTable('trafficTableB', dataB, storesToShow, fileNameB, dataA);
         }
         
-        function createTrafficSummaryTable(tableId, data, stores, title) {
+        function createTrafficSummaryTable(tableId, data, stores, title, compareData) {
             const maxWeek = data.maxWeek;
             
             // 先收集每家门市的所有数据，找出最高和最低值
@@ -767,6 +767,8 @@
                     <td>${data.weekDates[week] || ''}</td>`;
                 
                 let weekTotal = 0;
+                let weekTotalCompare = 0;
+                
                 stores.forEach(store => {
                     const weekData = data.data.find(d => 
                         d.store === store && 
@@ -784,11 +786,49 @@
                         color = '#3b82f6';  // 蓝色 - 最低
                     }
                     
-                    tableHTML += `<td style="color: ${color}; font-weight: ${qty === storeMaxMin[store].max || qty === storeMaxMin[store].min ? 'bold' : 'normal'};">${qty.toLocaleString()}</td>`;
+                    let cellContent = `<span style="color: ${color}; font-weight: ${qty === storeMaxMin[store].max || qty === storeMaxMin[store].min ? 'bold' : 'normal'};">${qty.toLocaleString()}</span>`;
+                    
+                    // 如果有比较数据，将增长率显示在数字右边
+                    if (compareData) {
+                        const compareWeekData = compareData.data.find(d => 
+                            d.store === store && 
+                            d.class === 'Traffic' && 
+                            d.weekNum === week
+                        );
+                        const compareQty = compareWeekData ? compareWeekData.qty : 0;
+                        weekTotalCompare += compareQty;
+                        
+                        if (compareQty > 0) {
+                            const growth = ((qty - compareQty) / compareQty * 100).toFixed(1);
+                            const growthNum = parseFloat(growth);
+                            
+                            if (growthNum > 0) {
+                                cellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.8em;">▲${growth}%</span>`;
+                            } else if (growthNum < 0) {
+                                cellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.8em;">▼${Math.abs(growth)}%</span>`;
+                            }
+                        }
+                    }
+                    
+                    tableHTML += `<td>${cellContent}</td>`;
                 });
                 
                 if (stores.length > 1) {
-                    tableHTML += `<td style="font-weight: bold;">${weekTotal.toLocaleString()}</td>`;
+                    let totalCellContent = `<span style="font-weight: bold;">${weekTotal.toLocaleString()}</span>`;
+                    
+                    // 总计的增长率显示在数字右边
+                    if (compareData && weekTotalCompare > 0) {
+                        const totalGrowth = ((weekTotal - weekTotalCompare) / weekTotalCompare * 100).toFixed(1);
+                        const totalGrowthNum = parseFloat(totalGrowth);
+                        
+                        if (totalGrowthNum > 0) {
+                            totalCellContent += ` <span style="color: #22c55e; font-weight: bold; font-size: 0.8em;">▲${totalGrowth}%</span>`;
+                        } else if (totalGrowthNum < 0) {
+                            totalCellContent += ` <span style="color: #ef4444; font-weight: bold; font-size: 0.8em;">▼${Math.abs(totalGrowth)}%</span>`;
+                        }
+                    }
+                    
+                    tableHTML += `<td>${totalCellContent}</td>`;
                 }
                 
                 tableHTML += '</tr>';
