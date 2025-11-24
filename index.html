@@ -279,18 +279,6 @@
             font-size: 14px;
         }
         
-        .growth-table th:nth-child(1),
-        .growth-table td:nth-child(1) {
-            width: 70px;
-            min-width: 70px;
-        }
-        
-        .growth-table th:nth-child(2),
-        .growth-table td:nth-child(2) {
-            width: 140px;
-            min-width: 140px;
-        }
-        
         .growth-table th {
             background: #1e40af;
             color: white;
@@ -758,8 +746,8 @@
                 <table class="growth-table">
                     <thead>
                         <tr>
-                            <th>Week</th>
-                            <th style="${stores.length > 1 ? 'width: 110px; min-width: 110px;' : ''}">日期區間</th>`;
+                            <th style="width: 70px; min-width: 70px;">Week</th>
+                            <th style="${stores.length > 1 ? 'width: 110px; min-width: 110px;' : 'width: 140px; min-width: 140px;'}">日期區間</th>`;
             
             stores.forEach(store => {
                 tableHTML += `<th>${store}</th>`;
@@ -780,8 +768,8 @@
             
             for (let week = 1; week <= maxWeek; week++) {
                 tableHTML += `<tr>
-                    <td style="font-weight: bold; text-align: center;">W${week}</td>
-                    <td style="text-align: center;${stores.length > 1 ? ' width: 110px; min-width: 110px;' : ''}">${data.weekDates[week] || ''}</td>`;
+                    <td style="font-weight: bold; text-align: center; width: 70px; min-width: 70px;">W${week}</td>
+                    <td style="text-align: center;${stores.length > 1 ? ' width: 110px; min-width: 110px;' : ' width: 140px; min-width: 140px;'}">${data.weekDates[week] || ''}</td>`;
                 
                 let weekTotal = 0;
                 let weekTotalCompare = 0;
@@ -1940,7 +1928,7 @@
             tableHTML += '<table class="growth-table"><thead>';
             
             // 第一層表頭
-            tableHTML += '<tr><th rowspan="2" style="vertical-align: middle;">品項</th>';
+            tableHTML += '<tr><th rowspan="2" style="vertical-align: middle; width: 100px; min-width: 100px;">品項</th>';
             allStores.forEach((store, index) => {
                 const borderStyle = index < allStores.length - 1 ? 'border-right: 3px solid #cbd5e1;' : '';
                 tableHTML += `<th colspan="3" class="store-header" style="${borderStyle}">${store}</th>`;
@@ -1964,7 +1952,7 @@
             tableHTML += '</tr></thead><tbody>';
             
             mainProducts.forEach(product => {
-                tableHTML += `<tr><td class="product-col">${product}</td>`;
+                tableHTML += `<tr><td class="product-col" style="width: 100px; min-width: 100px;">${product}</td>`;
                 
                 let totalQtyA = 0;
                 let totalQtyB = 0;
