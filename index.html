@@ -275,37 +275,40 @@
         }
         
         .growth-table {
-            width: 100%;
+            width: auto;
+            min-width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            font-size: 14px;
+            font-size: 13px;
         }
         
         .growth-table th {
             background: #1e40af;
             color: white;
-            padding: 12px;
+            padding: 10px 8px;
             text-align: center;
             font-weight: bold;
             border: 1px solid #1e3a8a;
+            white-space: nowrap;
         }
         
         .growth-table td {
-            padding: 10px;
+            padding: 8px 6px;
             text-align: center;
             border: 1px solid #e5e7eb;
+            white-space: nowrap;
         }
         
         .growth-table .product-col {
             background: #f1f5f9;
             font-weight: bold;
             text-align: left;
-            padding-left: 20px;
+            padding-left: 12px;
         }
         
         .growth-table .store-header {
             font-weight: bold;
-            font-size: 15px;
+            font-size: 14px;
         }
         
         .growth-table .positive-growth {
@@ -454,7 +457,9 @@
             <!-- 主力產品增長率 -->
             <div class="chart-section">
                 <h2>主力產品門市增長率分析</h2>
-                <div id="growthRateTable"></div>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <div id="growthRateTable"></div>
+                </div>
             </div>
             
             <!-- 品項銷量對比 -->
