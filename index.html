@@ -357,7 +357,14 @@
         <h1>📊 季度銷售數據分析</h1>
         <p style="color: #9ca3af; font-size: 0.95em; margin-top: -15px; margin-bottom: 25px; text-align: center; font-weight: normal;">Quarterly Business Review</p>
         
-        <div class="upload-section">
+        <!-- 選擇載入模式 -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="btn" onclick="switchMode('local')" id="localModeBtn" style="margin-right: 10px; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white;">本地上傳</button>
+            <button class="btn" onclick="switchMode('github')" id="githubModeBtn" style="background: white; color: #3b82f6;">從 GitHub 載入</button>
+        </div>
+        
+        <!-- 本地上傳區域 -->
+        <div class="upload-section" id="localUploadSection">
             <div class="upload-box" onclick="document.getElementById('fileA').click()">
                 <h3>📁 上傳對比A檔案</h3>
                 <p>點擊選擇 Excel 檔案</p>
@@ -373,6 +380,43 @@
             </div>
             
             <button class="btn" id="analyzeBtn" onclick="analyzeData()" disabled>開始分析</button>
+        </div>
+        
+        <!-- GitHub 載入區域 -->
+        <div class="upload-section" id="githubUploadSection" style="display: none; flex-direction: column;">
+            <div style="background: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+                <p style="margin: 0; color: #1e40af; font-size: 14px;">
+                    <strong>💡 使用說明：</strong><br>
+                    1. 將Excel檔案上傳到GitHub倉庫（如：https://github.com/moriochang/QBR）<br>
+                    2. 複製倉庫URL並貼在下方（系統會自動識別分支）<br>
+                    3. 點擊「載入檔案列表」<br>
+                    4. 從下拉選單選擇要比對的兩個季度報表（如 FY25Q1 vs FY26Q1）
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 20px; width: 100%;">
+                <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">GitHub 倉庫 URL：</label>
+                <input type="text" id="githubUrl" placeholder="貼上你的倉庫URL，例如：https://github.com/moriochang/QBR" 
+                       style="width: 100%; padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; font-size: 14px;">
+                <button class="btn" onclick="loadGithubFiles()" style="margin-top: 10px;">📥 載入檔案列表</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">📊 對比A檔案：</label>
+                    <select id="githubFileA" style="width: 100%; padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; font-size: 14px;" onchange="checkGithubSelection()">
+                        <option value="">請先載入檔案列表</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #333;">📊 對比B檔案：</label>
+                    <select id="githubFileB" style="width: 100%; padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; font-size: 14px;" onchange="checkGithubSelection()">
+                        <option value="">請先載入檔案列表</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="btn" id="analyzeGithubBtn" onclick="analyzeGithubData()" disabled>開始分析</button>
         </div>
         
         <div class="loading" id="loading">
@@ -562,6 +606,192 @@
         
         // 有人流數據的門市（排除84）
         const trafficStores = ['75', '76', '77', '81'];
+        
+        let githubFileList = [];
+        let currentMode = 'local';
+        
+        function switchMode(mode) {
+            currentMode = mode;
+            const localSection = document.getElementById('localUploadSection');
+            const githubSection = document.getElementById('githubUploadSection');
+            const localBtn = document.getElementById('localModeBtn');
+            const githubBtn = document.getElementById('githubModeBtn');
+            
+            if (mode === 'local') {
+                localSection.style.display = 'flex';
+                githubSection.style.display = 'none';
+                localBtn.style.background = 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)';
+                localBtn.style.color = 'white';
+                githubBtn.style.background = 'white';
+                githubBtn.style.color = '#3b82f6';
+            } else {
+                localSection.style.display = 'none';
+                githubSection.style.display = 'block';
+                githubBtn.style.background = 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)';
+                githubBtn.style.color = 'white';
+                localBtn.style.background = 'white';
+                localBtn.style.color = '#3b82f6';
+            }
+        }
+        
+        async function loadGithubFiles() {
+            const urlInput = document.getElementById('githubUrl').value.trim();
+            if (!urlInput) {
+                alert('請輸入 GitHub 倉庫 URL');
+                return;
+            }
+            
+            try {
+                let owner, repo, branch, path;
+                
+                // 格式1: https://github.com/username/repo/tree/branch/path
+                let match = urlInput.match(/github\.com\/([^\/]+)\/([^\/]+)\/tree\/([^\/]+)\/(.+)/);
+                if (match) {
+                    [, owner, repo, branch, path] = match;
+                } else {
+                    // 格式2: https://github.com/username/repo/tree/branch (根目錄)
+                    match = urlInput.match(/github\.com\/([^\/]+)\/([^\/]+)\/tree\/([^\/]+)\/?$/);
+                    if (match) {
+                        [, owner, repo, branch] = match;
+                        path = '';
+                    } else {
+                        // 格式3: https://github.com/username/repo (嘗試main分支)
+                        match = urlInput.match(/github\.com\/([^\/]+)\/([^\/]+)\/?$/);
+                        if (match) {
+                            [, owner, repo] = match;
+                            branch = 'main';
+                            path = '';
+                        } else {
+                            alert('URL 格式不正確。\n\n正確格式範例：\n• https://github.com/moriochang/QBR/tree/main\n• https://github.com/moriochang/QBR/tree/main/data');
+                            return;
+                        }
+                    }
+                }
+                
+                const apiUrl = path 
+                    ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`
+                    : `https://api.github.com/repos/${owner}/${repo}/contents?ref=${branch}`;
+                
+                document.getElementById('githubUrl').value = path 
+                    ? `https://github.com/${owner}/${repo}/tree/${branch}/${path}`
+                    : `https://github.com/${owner}/${repo}/tree/${branch}`;
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    if (response.status === 404 && branch === 'main') {
+                        // 嘗試 master 分支
+                        const masterApiUrl = path 
+                            ? `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=master`
+                            : `https://api.github.com/repos/${owner}/${repo}/contents?ref=master`;
+                        
+                        const masterResponse = await fetch(masterApiUrl);
+                        if (masterResponse.ok) {
+                            const files = await masterResponse.json();
+                            githubFileList = Array.isArray(files) ? files.filter(f => f.name.endsWith('.xlsx') || f.name.endsWith('.xls')) : [];
+                            document.getElementById('githubUrl').value = path 
+                                ? `https://github.com/${owner}/${repo}/tree/master/${path}`
+                                : `https://github.com/${owner}/${repo}/tree/master`;
+                        } else {
+                            throw new Error('無法載入檔案列表（嘗試了 main 和 master 分支）');
+                        }
+                    } else {
+                        throw new Error(`無法載入檔案列表 (${response.status})`);
+                    }
+                } else {
+                    const files = await response.json();
+                    githubFileList = Array.isArray(files) ? files.filter(f => f.name.endsWith('.xlsx') || f.name.endsWith('.xls')) : [];
+                }
+                
+                if (githubFileList.length === 0) {
+                    alert('在此路徑找不到 Excel 檔案（.xlsx 或 .xls）');
+                    return;
+                }
+                
+                // 更新下拉選單
+                const selectA = document.getElementById('githubFileA');
+                const selectB = document.getElementById('githubFileB');
+                
+                selectA.innerHTML = '<option value="">請選擇檔案</option>';
+                selectB.innerHTML = '<option value="">請選擇檔案</option>';
+                
+                // 按檔名排序
+                githubFileList.sort((a, b) => a.name.localeCompare(b.name));
+                
+                githubFileList.forEach(file => {
+                    const optionA = document.createElement('option');
+                    optionA.value = file.download_url;
+                    optionA.textContent = file.name;
+                    selectA.appendChild(optionA);
+                    
+                    const optionB = document.createElement('option');
+                    optionB.value = file.download_url;
+                    optionB.textContent = file.name;
+                    selectB.appendChild(optionB);
+                });
+                
+                alert(`✅ 成功載入 ${githubFileList.length} 個檔案`);
+            } catch (error) {
+                alert('❌ 載入失敗：' + error.message);
+                console.error(error);
+            }
+        }
+        
+        function checkGithubSelection() {
+            const fileA = document.getElementById('githubFileA').value;
+            const fileB = document.getElementById('githubFileB').value;
+            const analyzeBtn = document.getElementById('analyzeGithubBtn');
+            
+            analyzeBtn.disabled = !(fileA && fileB);
+        }
+        
+        async function analyzeGithubData() {
+            const fileAUrl = document.getElementById('githubFileA').value;
+            const fileBUrl = document.getElementById('githubFileB').value;
+            const fileAName = document.getElementById('githubFileA').options[document.getElementById('githubFileA').selectedIndex].text;
+            const fileBName = document.getElementById('githubFileB').options[document.getElementById('githubFileB').selectedIndex].text;
+            
+            document.getElementById('loading').classList.add('active');
+            
+            try {
+                // 載入檔案A
+                const responseA = await fetch(fileAUrl);
+                const dataA_blob = await responseA.arrayBuffer();
+                const workbookA = XLSX.read(new Uint8Array(dataA_blob), {type: 'array'});
+                const firstSheetA = workbookA.Sheets[workbookA.SheetNames[0]];
+                const jsonDataA = XLSX.utils.sheet_to_json(firstSheetA, {header: 1});
+                dataA = processExcelData(jsonDataA);
+                fileNameA = fileAName.replace(/\.[^/.]+$/, "");
+                
+                // 載入檔案B
+                const responseB = await fetch(fileBUrl);
+                const dataB_blob = await responseB.arrayBuffer();
+                const workbookB = XLSX.read(new Uint8Array(dataB_blob), {type: 'array'});
+                const firstSheetB = workbookB.Sheets[workbookB.SheetNames[0]];
+                const jsonDataB = XLSX.utils.sheet_to_json(firstSheetB, {header: 1});
+                dataB = processExcelData(jsonDataB);
+                fileNameB = fileBName.replace(/\.[^/.]+$/, "");
+                
+                // 開始分析
+                setTimeout(() => {
+                    createStoreButtons();
+                    createClassButtons();
+                    createTrafficCharts();
+                    createTradeinCharts();
+                    updateCharts();
+                    calculateSummary();
+                    createGrowthRateTable();
+                    createProductComparisonCharts();
+                    createCategoryStoreCharts();
+                    
+                    document.getElementById('loading').classList.remove('active');
+                    document.getElementById('results').style.display = 'block';
+                }, 500);
+            } catch (error) {
+                document.getElementById('loading').classList.remove('active');
+                alert('載入失敗：' + error.message);
+                console.error(error);
+            }
+        }
         
         function handleFileUpload(quarter, input) {
             const file = input.files[0];
