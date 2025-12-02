@@ -358,7 +358,7 @@
         }
         
         .sidebar {
-            width: 320px;
+            width: 260px;
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             color: white;
             padding: 30px 20px;
@@ -405,28 +405,35 @@
             font-weight: 500;
         }
         
-        .sidebar-section select {
-            width: 100%;
-            padding: 10px;
+        .sidebar-section .file-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .sidebar-section .file-btn {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.15);
+            color: white;
             border: 2px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.95);
-            color: #1e40af;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            text-align: center;
         }
         
-        .sidebar-section select:hover {
-            border-color: rgba(255,255,255,0.6);
+        .sidebar-section .file-btn:hover {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.5);
+        }
+        
+        .sidebar-section .file-btn.active {
             background: white;
-        }
-        
-        .sidebar-section select:focus {
-            outline: none;
+            color: #1e40af;
             border-color: white;
-            background: white;
         }
         
         .sidebar .btn {
@@ -452,7 +459,7 @@
         }
         
         .main-content {
-            margin-left: 320px;
+            margin-left: 260px;
             flex: 1;
             padding: 40px;
             background: #f8fafc;
@@ -499,30 +506,15 @@
                 </h3>
                 <div style="margin-bottom: 15px;">
                     <label>📊 對比A檔案：</label>
-                    <select id="githubFileA" onchange="checkGithubSelection()">
-                        <option value="">載入中...</option>
-                    </select>
+                    <div class="file-buttons" id="fileButtonsA"></div>
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label>📊 對比B檔案：</label>
-                    <select id="githubFileB" onchange="checkGithubSelection()">
-                        <option value="">載入中...</option>
-                    </select>
+                    <div class="file-buttons" id="fileButtonsB"></div>
                 </div>
                 <button class="btn" id="analyzeGithubBtn" onclick="analyzeGithubData()" disabled>
                     🚀 開始分析
                 </button>
-            </div>
-            
-            <div class="sidebar-section" style="background: rgba(255,255,255,0.05); font-size: 0.85em;">
-                <h3 style="font-size: 0.95em;">ℹ️ 使用說明</h3>
-                <p style="margin: 0; line-height: 1.6; color: rgba(255,255,255,0.8);">
-                    1. 系統會自動載入 GitHub 檔案<br>
-                    2. 選擇兩個要比對的季度報表<br>
-                    3. 點擊「開始分析」即可<br><br>
-                    <strong style="color: white;">資料來源：</strong><br>
-                    github.com/moriochang/QBR
-                </p>
             </div>
         </div>
         
@@ -729,6 +721,9 @@
             autoLoadGithubFiles();
         });
         
+        let selectedFileA = null;
+        let selectedFileB = null;
+        
         async function autoLoadGithubFiles() {
             const statusIndicator = document.getElementById('statusIndicator');
             statusIndicator.className = 'status-indicator loading';
@@ -757,48 +752,69 @@
                 // 按檔名排序
                 githubFileList.sort((a, b) => a.name.localeCompare(b.name));
                 
-                // 更新下拉選單
-                const selectA = document.getElementById('githubFileA');
-                const selectB = document.getElementById('githubFileB');
-                
-                selectA.innerHTML = '<option value="">請選擇檔案</option>';
-                selectB.innerHTML = '<option value="">請選擇檔案</option>';
-                
+                // 建立對比A的按鈕
+                const containerA = document.getElementById('fileButtonsA');
+                containerA.innerHTML = '';
                 githubFileList.forEach(file => {
-                    const optionA = document.createElement('option');
-                    optionA.value = file.download_url;
-                    optionA.textContent = file.name.replace('.xlsx', '').replace('.xls', '');
-                    selectA.appendChild(optionA);
-                    
-                    const optionB = document.createElement('option');
-                    optionB.value = file.download_url;
-                    optionB.textContent = file.name.replace('.xlsx', '').replace('.xls', '');
-                    selectB.appendChild(optionB);
+                    const btn = document.createElement('button');
+                    btn.className = 'file-btn';
+                    btn.textContent = file.name.replace('.xlsx', '').replace('.xls', '');
+                    btn.onclick = () => selectFile('A', file, btn);
+                    containerA.appendChild(btn);
+                });
+                
+                // 建立對比B的按鈕
+                const containerB = document.getElementById('fileButtonsB');
+                containerB.innerHTML = '';
+                githubFileList.forEach(file => {
+                    const btn = document.createElement('button');
+                    btn.className = 'file-btn';
+                    btn.textContent = file.name.replace('.xlsx', '').replace('.xls', '');
+                    btn.onclick = () => selectFile('B', file, btn);
+                    containerB.appendChild(btn);
                 });
                 
                 statusIndicator.className = 'status-indicator ready';
             } catch (error) {
                 statusIndicator.className = 'status-indicator error';
-                document.getElementById('githubFileA').innerHTML = '<option value="">載入失敗，請重新整理頁面</option>';
-                document.getElementById('githubFileB').innerHTML = '<option value="">載入失敗，請重新整理頁面</option>';
+                document.getElementById('fileButtonsA').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
+                document.getElementById('fileButtonsB').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
                 console.error('載入失敗：', error);
             }
         }
         
+        function selectFile(quarter, file, button) {
+            // 移除同組其他按鈕的active狀態
+            const container = document.getElementById(`fileButtons${quarter}`);
+            const buttons = container.querySelectorAll('.file-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // 設置當前按鈕為active
+            button.classList.add('active');
+            
+            // 儲存選擇
+            if (quarter === 'A') {
+                selectedFileA = file;
+            } else {
+                selectedFileB = file;
+            }
+            
+            // 檢查是否兩個都已選擇
+            checkGithubSelection();
+        }
         
         function checkGithubSelection() {
-            const fileA = document.getElementById('githubFileA').value;
-            const fileB = document.getElementById('githubFileB').value;
             const analyzeBtn = document.getElementById('analyzeGithubBtn');
-            
-            analyzeBtn.disabled = !(fileA && fileB);
+            analyzeBtn.disabled = !(selectedFileA && selectedFileB);
         }
         
         async function analyzeGithubData() {
-            const fileAUrl = document.getElementById('githubFileA').value;
-            const fileBUrl = document.getElementById('githubFileB').value;
-            const fileAName = document.getElementById('githubFileA').options[document.getElementById('githubFileA').selectedIndex].text;
-            const fileBName = document.getElementById('githubFileB').options[document.getElementById('githubFileB').selectedIndex].text;
+            if (!selectedFileA || !selectedFileB) return;
+            
+            const fileAUrl = selectedFileA.download_url;
+            const fileBUrl = selectedFileB.download_url;
+            const fileAName = selectedFileA.name;
+            const fileBName = selectedFileB.name;
             
             document.getElementById('loading').classList.add('active');
             
