@@ -725,6 +725,7 @@
         let selectedFileB = null;
         
         async function autoLoadGithubFiles() {
+            alert('開始載入GitHub檔案...');
             const statusIndicator = document.getElementById('statusIndicator');
             statusIndicator.className = 'status-indicator loading';
             
@@ -737,7 +738,10 @@
                 const [, owner, repo, branch, path] = match;
                 const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
                 
+                alert(`準備調用API: ${apiUrl}`);
                 const response = await fetch(apiUrl);
+                alert(`API回應狀態: ${response.status}`);
+                
                 if (!response.ok) {
                     throw new Error(`無法載入檔案 (${response.status})`);
                 }
@@ -752,6 +756,8 @@
                 // 按檔名排序
                 githubFileList.sort((a, b) => a.name.localeCompare(b.name));
                 
+                alert(`成功載入 ${githubFileList.length} 個檔案`);
+                
                 // 建立對比A的按鈕
                 const containerA = document.getElementById('fileButtonsA');
                 containerA.innerHTML = '';
@@ -762,6 +768,8 @@
                     btn.onclick = () => selectFile('A', file, btn);
                     containerA.appendChild(btn);
                 });
+                
+                alert(`對比A: 已建立 ${containerA.children.length} 個按鈕`);
                 
                 // 建立對比B的按鈕
                 const containerB = document.getElementById('fileButtonsB');
@@ -777,9 +785,9 @@
                 statusIndicator.className = 'status-indicator ready';
             } catch (error) {
                 statusIndicator.className = 'status-indicator error';
+                alert(`載入失敗：${error.message}`);
                 document.getElementById('fileButtonsA').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
                 document.getElementById('fileButtonsB').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
-                console.error('載入失敗：', error);
             }
         }
         
