@@ -2480,16 +2480,16 @@
                 let chartsHTML = `
                     <div style="max-width: 1400px; margin: 0 auto;">
                         <h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStore} - 各品項對比</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                            <div>
+                        <div style="display: flex; gap: 30px; align-items: flex-start;">
+                            <div style="flex: 2;">
                                 <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">主要產品</h4>
-                                <div style="position: relative; height: 450px; margin-bottom: 30px;">
+                                <div style="position: relative; height: 500px; margin-bottom: 30px;">
                                     <canvas id="mainProductsChart"></canvas>
                                 </div>
                             </div>
-                            <div>
+                            <div style="flex: 1;">
                                 <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">配件類</h4>
-                                <div style="position: relative; height: 450px; margin-bottom: 30px;">
+                                <div style="position: relative; height: 350px; margin-bottom: 30px;">
                                     <canvas id="accessoriesChart"></canvas>
                                 </div>
                             </div>
@@ -2503,9 +2503,15 @@
                     console.log('Creating charts for store:', selectedStore);
                     console.log('Main products:', mainProducts);
                     console.log('Accessories:', accessories);
+                    
+                    // 先創建主要產品圖表
                     createSingleStoreCategoryChart('mainProductsChart', selectedStore, mainProducts, comparableWeeks);
-                    createSingleStoreCategoryChart('accessoriesChart', selectedStore, accessories, comparableWeeks);
-                }, 300);
+                    
+                    // 再創建配件圖表
+                    setTimeout(() => {
+                        createSingleStoreCategoryChart('accessoriesChart', selectedStore, accessories, comparableWeeks);
+                    }, 100);
+                }, 500);
             }
         }
         
@@ -2532,9 +2538,22 @@
             console.log(`${canvasId} - Data A:`, qtyDataA);
             console.log(`${canvasId} - Data B:`, qtyDataB);
             
+            const totalDataA = qtyDataA.reduce((sum, val) => sum + val, 0);
+            const totalDataB = qtyDataB.reduce((sum, val) => sum + val, 0);
+            console.log(`${canvasId} - Total A: ${totalDataA}, Total B: ${totalDataB}`);
+            
             // 計算此圖表的最大值，用於Y軸範圍
             const maxValue = Math.max(...qtyDataA, ...qtyDataB);
-            const yAxisMax = maxValue > 0 ? Math.ceil(maxValue * 1.15) : 100;
+            let yAxisMax;
+            
+            if (maxValue === 0) {
+                yAxisMax = 100; // 沒有數據時的預設值
+                console.warn(`${canvasId} - No data found! All values are 0`);
+            } else if (maxValue < 50) {
+                yAxisMax = Math.ceil(maxValue * 1.5); // 小數值時放大比例
+            } else {
+                yAxisMax = Math.ceil(maxValue * 1.15);
+            }
             
             console.log(`${canvasId} - Max value: ${maxValue}, Y-axis max: ${yAxisMax}`);
             
@@ -2627,6 +2646,8 @@
                     }
                 }
             });
+            
+            console.log(`✓ Chart ${canvasId} created successfully`);
         }
         
         function createCategoryStoreChart(canvasId, category, stores, comparableWeeks) {
