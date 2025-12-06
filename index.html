@@ -1523,10 +1523,6 @@
             const maxRateIndex = recallRateData.indexOf(maxRate);
             const minRateIndex = recallRateData.indexOf(minRate);
             
-            // 計算平均回收率
-            const avgRate = recallRateData.reduce((sum, rate) => sum + rate, 0) / recallRateData.length;
-            const avgRateData = new Array(comparableWeeks).fill(avgRate);
-            
             const ctx = document.getElementById(canvasId).getContext('2d');
             
             if (charts[canvasId]) {
@@ -1609,22 +1605,6 @@
                                 formatter: function(value) {
                                     return value > 0 ? value + '%' : '';
                                 }
-                            }
-                        },
-                        {
-                            type: 'line',
-                            label: '平均回收率',
-                            data: avgRateData,
-                            borderColor: '#9ca3af',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 0,
-                            pointHoverRadius: 0,
-                            tension: 0,
-                            yAxisID: 'y1',
-                            order: 0,
-                            datalabels: {
-                                display: false
                             }
                         }
                     ]
