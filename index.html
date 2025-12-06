@@ -725,8 +725,9 @@
         let selectedFileB = null;
         
         async function autoLoadGithubFiles() {
-            alert('開始載入GitHub檔案...');
+            console.log('autoLoadGithubFiles 開始執行');
             const statusIndicator = document.getElementById('statusIndicator');
+            console.log('statusIndicator:', statusIndicator);
             statusIndicator.className = 'status-indicator loading';
             
             try {
@@ -737,17 +738,19 @@
                 
                 const [, owner, repo, branch, path] = match;
                 const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+                console.log('API URL:', apiUrl);
                 
-                alert(`準備調用API: ${apiUrl}`);
                 const response = await fetch(apiUrl);
-                alert(`API回應狀態: ${response.status}`);
+                console.log('API Response status:', response.status);
                 
                 if (!response.ok) {
                     throw new Error(`無法載入檔案 (${response.status})`);
                 }
                 
                 const files = await response.json();
+                console.log('Files received:', files);
                 githubFileList = Array.isArray(files) ? files.filter(f => f.name.endsWith('.xlsx') || f.name.endsWith('.xls')) : [];
+                console.log('Filtered Excel files:', githubFileList.length);
                 
                 if (githubFileList.length === 0) {
                     throw new Error('找不到 Excel 檔案');
@@ -756,10 +759,10 @@
                 // 按檔名排序
                 githubFileList.sort((a, b) => a.name.localeCompare(b.name));
                 
-                alert(`成功載入 ${githubFileList.length} 個檔案`);
                 
                 // 建立對比A的按鈕
                 const containerA = document.getElementById('fileButtonsA');
+                console.log('containerA:', containerA);
                 containerA.innerHTML = '';
                 githubFileList.forEach(file => {
                     const btn = document.createElement('button');
@@ -768,11 +771,12 @@
                     btn.onclick = () => selectFile('A', file, btn);
                     containerA.appendChild(btn);
                 });
+                console.log('對比A按鈕數量:', containerA.children.length);
                 
-                alert(`對比A: 已建立 ${containerA.children.length} 個按鈕`);
                 
                 // 建立對比B的按鈕
                 const containerB = document.getElementById('fileButtonsB');
+                console.log('containerB:', containerB);
                 containerB.innerHTML = '';
                 githubFileList.forEach(file => {
                     const btn = document.createElement('button');
@@ -781,11 +785,12 @@
                     btn.onclick = () => selectFile('B', file, btn);
                     containerB.appendChild(btn);
                 });
+                console.log('對比B按鈕數量:', containerB.children.length);
                 
                 statusIndicator.className = 'status-indicator ready';
             } catch (error) {
+                console.error('載入失敗:', error);
                 statusIndicator.className = 'status-indicator error';
-                alert(`載入失敗：${error.message}`);
                 document.getElementById('fileButtonsA').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
                 document.getElementById('fileButtonsB').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
             }
@@ -862,7 +867,6 @@
                 }, 500);
             } catch (error) {
                 document.getElementById('loading').classList.remove('active');
-                alert('載入失敗：' + error.message);
                 console.error(error);
             }
         }
