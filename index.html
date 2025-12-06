@@ -2473,16 +2473,35 @@
                     });
                 }, 100);
             } else {
-                // 顯示單一門市的各品項對比
-                let chartsHTML = '<div style="max-width: 800px; margin: 0 auto;">';
-                chartsHTML += `<h3 style="text-align: center; color: #1e40af; margin-bottom: 20px;">門市 ${selectedStore} - 各品項對比</h3>`;
-                chartsHTML += '<div class="chart-container" style="height: 500px;"><canvas id="singleStoreChart"></canvas></div>';
+                // 顯示單一門市的各品項對比 - 分成兩個圖表
+                const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods', 'Audio', 'Care'];
+                const accessories = ['Accy', '3rd Party'];
+                
+                let chartsHTML = '<div style="max-width: 1200px; margin: 0 auto;">';
+                chartsHTML += `<h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStore} - 各品項對比</h3>`;
+                
+                // 兩個圖表並排
+                chartsHTML += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">';
+                
+                // 主要產品圖表
+                chartsHTML += '<div>';
+                chartsHTML += '<h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">主要產品</h4>';
+                chartsHTML += '<div class="chart-container" style="height: 450px;"><canvas id="mainProductsChart"></canvas></div>';
                 chartsHTML += '</div>';
+                
+                // 配件圖表
+                chartsHTML += '<div>';
+                chartsHTML += '<h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">配件類</h4>';
+                chartsHTML += '<div class="chart-container" style="height: 450px;"><canvas id="accessoriesChart"></canvas></div>';
+                chartsHTML += '</div>';
+                
+                chartsHTML += '</div></div>';
                 
                 document.getElementById('categoryStoreCharts').innerHTML = chartsHTML;
                 
                 setTimeout(() => {
-                    createSingleStoreCategoryChart('singleStoreChart', selectedStore, categories, comparableWeeks);
+                    createSingleStoreCategoryChart('mainProductsChart', selectedStore, mainProducts, comparableWeeks);
+                    createSingleStoreCategoryChart('accessoriesChart', selectedStore, accessories, comparableWeeks);
                 }, 100);
             }
         }
