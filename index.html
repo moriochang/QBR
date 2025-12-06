@@ -738,7 +738,6 @@
                 const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
                 
                 const response = await fetch(apiUrl);
-                
                 if (!response.ok) {
                     throw new Error(`無法載入檔案 (${response.status})`);
                 }
@@ -753,7 +752,6 @@
                 // 按檔名排序
                 githubFileList.sort((a, b) => a.name.localeCompare(b.name));
                 
-                
                 // 建立對比A的按鈕
                 const containerA = document.getElementById('fileButtonsA');
                 containerA.innerHTML = '';
@@ -764,7 +762,6 @@
                     btn.onclick = () => selectFile('A', file, btn);
                     containerA.appendChild(btn);
                 });
-                
                 
                 // 建立對比B的按鈕
                 const containerB = document.getElementById('fileButtonsB');
@@ -782,6 +779,7 @@
                 statusIndicator.className = 'status-indicator error';
                 document.getElementById('fileButtonsA').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
                 document.getElementById('fileButtonsB').innerHTML = '<div style="color: rgba(255,255,255,0.7); font-size: 0.85em; text-align: center; padding: 10px;">載入失敗</div>';
+                console.error('載入失敗：', error);
             }
         }
         
@@ -856,6 +854,8 @@
                 }, 500);
             } catch (error) {
                 document.getElementById('loading').classList.remove('active');
+                alert('載入失敗：' + error.message);
+                console.error(error);
             }
         }
         
@@ -1523,10 +1523,6 @@
             const maxRateIndex = recallRateData.indexOf(maxRate);
             const minRateIndex = recallRateData.indexOf(minRate);
             
-            // 計算平均回收率
-            const avgRate = recallRateData.reduce((sum, rate) => sum + rate, 0) / recallRateData.length;
-            const avgRateData = new Array(comparableWeeks).fill(avgRate);
-            
             const ctx = document.getElementById(canvasId).getContext('2d');
             
             if (charts[canvasId]) {
@@ -1609,22 +1605,6 @@
                                 formatter: function(value) {
                                     return value > 0 ? value + '%' : '';
                                 }
-                            }
-                        },
-                        {
-                            type: 'line',
-                            label: '平均回收率',
-                            data: avgRateData,
-                            borderColor: '#9ca3af',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            pointRadius: 0,
-                            pointHoverRadius: 0,
-                            tension: 0,
-                            yAxisID: 'y1',
-                            order: 0,
-                            datalabels: {
-                                display: false
                             }
                         }
                     ]
