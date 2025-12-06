@@ -2477,36 +2477,42 @@
                 const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods', 'Audio', 'Care'];
                 const accessories = ['Accy', '3rd Party'];
                 
-                let chartsHTML = '<div style="max-width: 1200px; margin: 0 auto;">';
-                chartsHTML += `<h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStore} - 各品項對比</h3>`;
-                
-                // 兩個圖表並排
-                chartsHTML += '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">';
-                
-                // 主要產品圖表
-                chartsHTML += '<div>';
-                chartsHTML += '<h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">主要產品</h4>';
-                chartsHTML += '<div class="chart-container" style="height: 450px;"><canvas id="mainProductsChart"></canvas></div>';
-                chartsHTML += '</div>';
-                
-                // 配件圖表
-                chartsHTML += '<div>';
-                chartsHTML += '<h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">配件類</h4>';
-                chartsHTML += '<div class="chart-container" style="height: 450px;"><canvas id="accessoriesChart"></canvas></div>';
-                chartsHTML += '</div>';
-                
-                chartsHTML += '</div></div>';
+                let chartsHTML = `
+                    <div style="max-width: 1400px; margin: 0 auto;">
+                        <h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStore} - 各品項對比</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                            <div>
+                                <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">主要產品</h4>
+                                <div style="position: relative; height: 450px; margin-bottom: 30px;">
+                                    <canvas id="mainProductsChart"></canvas>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">配件類</h4>
+                                <div style="position: relative; height: 450px; margin-bottom: 30px;">
+                                    <canvas id="accessoriesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
                 
                 document.getElementById('categoryStoreCharts').innerHTML = chartsHTML;
                 
                 setTimeout(() => {
+                    console.log('Creating charts for store:', selectedStore);
+                    console.log('Main products:', mainProducts);
+                    console.log('Accessories:', accessories);
                     createSingleStoreCategoryChart('mainProductsChart', selectedStore, mainProducts, comparableWeeks);
                     createSingleStoreCategoryChart('accessoriesChart', selectedStore, accessories, comparableWeeks);
-                }, 100);
+                }, 300);
             }
         }
         
         function createSingleStoreCategoryChart(canvasId, store, categories, comparableWeeks) {
+            console.log(`Creating chart: ${canvasId} for store ${store}`);
+            console.log('Categories:', categories);
+            
             const qtyDataA = [];
             const qtyDataB = [];
             
@@ -2523,7 +2529,24 @@
                 qtyDataB.push(qtyB);
             });
             
-            const ctx = document.getElementById(canvasId).getContext('2d');
+            console.log(`${canvasId} - Data A:`, qtyDataA);
+            console.log(`${canvasId} - Data B:`, qtyDataB);
+            
+            // 計算此圖表的最大值，用於Y軸範圍
+            const maxValue = Math.max(...qtyDataA, ...qtyDataB);
+            const yAxisMax = maxValue > 0 ? Math.ceil(maxValue * 1.15) : 100;
+            
+            console.log(`${canvasId} - Max value: ${maxValue}, Y-axis max: ${yAxisMax}`);
+            
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`Canvas ${canvasId} not found`);
+                return;
+            }
+            
+            console.log(`Canvas ${canvasId} found, creating chart...`);
+            
+            const ctx = canvas.getContext('2d');
             
             if (charts[canvasId]) {
                 charts[canvasId].destroy();
@@ -2594,6 +2617,7 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            max: yAxisMax,
                             ticks: {
                                 callback: function(value) {
                                     return value.toLocaleString();
