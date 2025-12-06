@@ -2473,26 +2473,12 @@
                     });
                 }, 100);
             } else {
-                // 顯示單一門市的各品項對比 - 分成兩個圖表
-                const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods', 'Audio', 'Care'];
-                const accessories = ['Accy', '3rd Party'];
-                
+                // 顯示單一門市的各品項對比
                 let chartsHTML = `
-                    <div style="max-width: 1400px; margin: 0 auto;">
+                    <div style="max-width: 1000px; margin: 0 auto;">
                         <h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStore} - 各品項對比</h3>
-                        <div style="display: flex; gap: 30px; align-items: flex-start;">
-                            <div style="flex: 2;">
-                                <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">主要產品</h4>
-                                <div style="position: relative; height: 500px; margin-bottom: 30px;">
-                                    <canvas id="mainProductsChart"></canvas>
-                                </div>
-                            </div>
-                            <div style="flex: 1;">
-                                <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">配件類</h4>
-                                <div style="position: relative; height: 350px; margin-bottom: 30px;">
-                                    <canvas id="accessoriesChart"></canvas>
-                                </div>
-                            </div>
+                        <div class="chart-container" style="height: 500px;">
+                            <canvas id="singleStoreChart"></canvas>
                         </div>
                     </div>
                 `;
@@ -2500,25 +2486,12 @@
                 document.getElementById('categoryStoreCharts').innerHTML = chartsHTML;
                 
                 setTimeout(() => {
-                    console.log('Creating charts for store:', selectedStore);
-                    console.log('Main products:', mainProducts);
-                    console.log('Accessories:', accessories);
-                    
-                    // 先創建主要產品圖表
-                    createSingleStoreCategoryChart('mainProductsChart', selectedStore, mainProducts, comparableWeeks);
-                    
-                    // 再創建配件圖表
-                    setTimeout(() => {
-                        createSingleStoreCategoryChart('accessoriesChart', selectedStore, accessories, comparableWeeks);
-                    }, 100);
-                }, 500);
+                    createSingleStoreCategoryChart('singleStoreChart', selectedStore, categories, comparableWeeks);
+                }, 100);
             }
         }
         
         function createSingleStoreCategoryChart(canvasId, store, categories, comparableWeeks) {
-            console.log(`Creating chart: ${canvasId} for store ${store}`);
-            console.log('Categories:', categories);
-            
             const qtyDataA = [];
             const qtyDataB = [];
             
@@ -2535,37 +2508,7 @@
                 qtyDataB.push(qtyB);
             });
             
-            console.log(`${canvasId} - Data A:`, qtyDataA);
-            console.log(`${canvasId} - Data B:`, qtyDataB);
-            
-            const totalDataA = qtyDataA.reduce((sum, val) => sum + val, 0);
-            const totalDataB = qtyDataB.reduce((sum, val) => sum + val, 0);
-            console.log(`${canvasId} - Total A: ${totalDataA}, Total B: ${totalDataB}`);
-            
-            // 計算此圖表的最大值，用於Y軸範圍
-            const maxValue = Math.max(...qtyDataA, ...qtyDataB);
-            let yAxisMax;
-            
-            if (maxValue === 0) {
-                yAxisMax = 100; // 沒有數據時的預設值
-                console.warn(`${canvasId} - No data found! All values are 0`);
-            } else if (maxValue < 50) {
-                yAxisMax = Math.ceil(maxValue * 1.5); // 小數值時放大比例
-            } else {
-                yAxisMax = Math.ceil(maxValue * 1.15);
-            }
-            
-            console.log(`${canvasId} - Max value: ${maxValue}, Y-axis max: ${yAxisMax}`);
-            
-            const canvas = document.getElementById(canvasId);
-            if (!canvas) {
-                console.error(`Canvas ${canvasId} not found`);
-                return;
-            }
-            
-            console.log(`Canvas ${canvasId} found, creating chart...`);
-            
-            const ctx = canvas.getContext('2d');
+            const ctx = document.getElementById(canvasId).getContext('2d');
             
             if (charts[canvasId]) {
                 charts[canvasId].destroy();
@@ -2636,7 +2579,6 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            max: yAxisMax,
                             ticks: {
                                 callback: function(value) {
                                     return value.toLocaleString();
@@ -2646,9 +2588,8 @@
                     }
                 }
             });
-            
-            console.log(`✓ Chart ${canvasId} created successfully`);
         }
+        
         
         function createCategoryStoreChart(canvasId, category, stores, comparableWeeks) {
             const qtyDataA = [];
