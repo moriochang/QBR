@@ -1768,6 +1768,21 @@
                 `;
             });
             
+            // 計算平均數
+            const avgIphone = (tableData.reduce((sum, row) => sum + row.iphone, 0) / tableData.length).toFixed(0);
+            const avgTradein = (tableData.reduce((sum, row) => sum + row.tradein, 0) / tableData.length).toFixed(0);
+            const avgRate = (tableData.reduce((sum, row) => sum + row.rate, 0) / tableData.length).toFixed(1);
+            
+            // 添加平均數行
+            tableHTML += `
+                <tr style="background-color: #f1f5f9; font-weight: bold; border-top: 3px solid #1e40af;">
+                    <td colspan="2" style="text-align: center; color: #1e40af;">平均</td>
+                    <td style="color: #1e40af;">${parseFloat(avgIphone).toLocaleString()}</td>
+                    <td style="color: #1e40af;">${parseFloat(avgTradein).toLocaleString()}</td>
+                    <td style="color: #1e40af;">${avgRate}%</td>
+                </tr>
+            `;
+            
             tableHTML += `
                     </tbody>
                 </table>
