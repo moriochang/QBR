@@ -1149,6 +1149,20 @@
                                             </div>
                                         `}
                                     </div>`;
+                            } else if (currentStore === 'all' && growthNum !== 0) {
+                                // 全部门市模式：显示燈號
+                                let indicatorColor;
+                                if (growthNum >= 10) {
+                                    indicatorColor = '#15803d';  // 深綠
+                                } else if (growthNum > 0) {
+                                    indicatorColor = '#22c55e';  // 淺綠
+                                } else if (growthNum >= -10) {
+                                    indicatorColor = '#ef4444';  // 淺紅
+                                } else {
+                                    indicatorColor = '#991b1b';  // 深紅
+                                }
+                                
+                                cellContent += ` <span style="color: ${indicatorColor}; font-size: 1.2em; margin-left: 4px;">●</span>`;
                             }
                         }
                     } else if (stores.length > 1 && currentStore !== 'all') {
@@ -1264,6 +1278,25 @@
                                         </div>
                                     `}
                                 </div>`;
+                        }
+                    } else if (compareData && weekTotalCompare > 0 && currentStore === 'all') {
+                        // 全部门市模式：显示燈號
+                        const totalGrowth = ((weekTotal - weekTotalCompare) / weekTotalCompare * 100).toFixed(1);
+                        const totalGrowthNum = parseFloat(totalGrowth);
+                        
+                        if (totalGrowthNum !== 0) {
+                            let indicatorColor;
+                            if (totalGrowthNum >= 10) {
+                                indicatorColor = '#15803d';  // 深綠
+                            } else if (totalGrowthNum > 0) {
+                                indicatorColor = '#22c55e';  // 淺綠
+                            } else if (totalGrowthNum >= -10) {
+                                indicatorColor = '#ef4444';  // 淺紅
+                            } else {
+                                indicatorColor = '#991b1b';  // 深紅
+                            }
+                            
+                            totalCellContent += ` <span style="color: ${indicatorColor}; font-size: 1.2em; margin-left: 4px;">●</span>`;
                         }
                     } else if (!compareData && currentStore !== 'all') {
                         // 对比A没有增长率，但添加占位空间和中线以对齐列宽（非全部门市模式）
