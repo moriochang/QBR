@@ -1066,9 +1066,10 @@
                 tableHTML += '<th>總計</th>';
             }
             
-            // 单个门市时，统一增加增长率列
+            // 单个门市时，统一增加增长率数据列和增长率图表列
             if (stores.length === 1) {
                 tableHTML += '<th style="background: #3b82f6; color: white;">增長率</th>';
+                tableHTML += '<th style="background: #3b82f6; color: white;">增長率圖表</th>';
             }
             
             tableHTML += `</tr>
@@ -1164,11 +1165,24 @@
                     tableHTML += `<td style="text-align: center;">${cellContent}</td>`;
                 });
                 
-                // 单门市时，在独立列显示增长率Bar Chart或占位
+                // 单门市时，在独立列显示增长率数据和图表
                 if (stores.length === 1) {
                     if (compareData && singleStoreGrowthData) {
                         const { growth, growthNum } = singleStoreGrowthData;
                         
+                        // 第一欄：增長率數據（文字+符號）
+                        if (growthNum !== 0) {
+                            const isGrowth = growthNum > 0;
+                            const textColor = isGrowth ? '#22c55e' : '#ef4444';
+                            const symbol = isGrowth ? '▲' : '▼';
+                            const sign = isGrowth ? '+' : '';
+                            
+                            tableHTML += `<td style="text-align: center; color: ${textColor}; font-weight: bold;">${symbol} ${sign}${growth}%</td>`;
+                        } else {
+                            tableHTML += `<td style="text-align: center; color: #6b7280;">0.0%</td>`;
+                        }
+                        
+                        // 第二欄：增長率圖表（條形圖）
                         if (growthNum !== 0) {
                             const isGrowth = growthNum > 0;
                             const barColor = isGrowth ? '#22c55e' : '#ef4444';
@@ -1198,10 +1212,18 @@
                             
                             tableHTML += `<td>${growthCellContent}</td>`;
                         } else {
-                            tableHTML += `<td style="text-align: center;">0.0%</td>`;
+                            tableHTML += `<td style="text-align: center;">
+                                <div style="width: 100%; display: flex; align-items: center; height: 22px;">
+                                    <div style="flex: 1;"></div>
+                                    <div style="width: 2px; height: 22px; background: #d1d5db;"></div>
+                                    <div style="flex: 1;"></div>
+                                </div>
+                            </td>`;
                         }
                     } else {
-                        // 对比A显示中线占位
+                        // 对比A没有比较数据，两欄都顯示占位
+                        tableHTML += `<td style="text-align: center; color: #9ca3af;">-</td>`;
+                        
                         const placeholderContent = `
                             <div style="width: 100%; display: flex; align-items: center; height: 22px;">
                                 <div style="flex: 1;"></div>
