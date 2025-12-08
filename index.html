@@ -283,6 +283,10 @@
             font-size: 13px;
         }
         
+        .growth-table-fixed {
+            table-layout: fixed;
+        }
+        
         .growth-table th {
             background: #1e40af;
             color: white;
@@ -1079,18 +1083,31 @@
             
             let tableHTML = `
                 <h4 style="color: #1e40af; margin-bottom: 10px;">數據摘要 - ${title}</h4>
-                <table class="growth-table">
+                <table class="growth-table ${currentStore === 'all' ? 'growth-table-fixed' : ''}">
                     <thead>
                         <tr>
-                            <th style="min-width: 60px;">Week</th>
-                            <th style="min-width: ${stores.length > 1 ? '100px' : '120px'};">日期區間</th>`;
+                            <th style="${currentStore === 'all' ? 'width: 10%;' : 'min-width: 60px;'}">Week</th>
+                            <th style="${currentStore === 'all' ? 'width: 15%;' : 'min-width: 120px;'}">日期區間</th>`;
             
-            stores.forEach(store => {
-                tableHTML += `<th style="min-width: ${stores.length > 1 ? '80px' : '100px'};">${store}</th>`;
-            });
-            
-            if (stores.length > 1) {
-                tableHTML += '<th style="min-width: 90px;">總計</th>';
+            if (currentStore === 'all') {
+                // 全部門市模式：使用固定百分比寬度確保對齊
+                const storeWidth = (60 / stores.length).toFixed(1);
+                stores.forEach(store => {
+                    tableHTML += `<th style="width: ${storeWidth}%;">${store}</th>`;
+                });
+                
+                if (stores.length > 1) {
+                    tableHTML += '<th style="width: 15%;">總計</th>';
+                }
+            } else {
+                // 單門市模式：使用min-width響應式
+                stores.forEach(store => {
+                    tableHTML += `<th style="min-width: 100px;">${store}</th>`;
+                });
+                
+                if (stores.length > 1) {
+                    tableHTML += '<th style="min-width: 90px;">總計</th>';
+                }
             }
             
             // 单个门市时，统一增加增长率数据列和增长率图表列
