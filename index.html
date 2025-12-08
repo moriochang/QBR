@@ -1215,8 +1215,8 @@
                 if (stores.length > 1) {
                     let totalCellContent = `<span style="font-weight: bold;">${weekTotal.toLocaleString()}</span>`;
                     
-                    // 总计的增长率显示在数字下方，带条状图
-                    if (compareData && weekTotalCompare > 0) {
+                    // 总计的增长率显示在数字下方，带条状图（非全部门市模式）
+                    if (compareData && weekTotalCompare > 0 && currentStore !== 'all') {
                         const totalGrowth = ((weekTotal - weekTotalCompare) / weekTotalCompare * 100).toFixed(1);
                         const totalGrowthNum = parseFloat(totalGrowth);
                         
@@ -1248,8 +1248,8 @@
                                     `}
                                 </div>`;
                         }
-                    } else if (!compareData) {
-                        // 对比A没有增长率，但添加占位空间和中线以对齐列宽
+                    } else if (!compareData && currentStore !== 'all') {
+                        // 对比A没有增长率，但添加占位空间和中线以对齐列宽（非全部门市模式）
                         totalCellContent += `
                             <br>
                             <div style="width: 100%; margin-top: 2px; display: flex; align-items: center; height: 18px;">
@@ -1259,7 +1259,7 @@
                             </div>`;
                     }
                     
-                    tableHTML += `<td style="${compareData ? '' : 'text-align: center;'}">${totalCellContent}</td>`;
+                    tableHTML += `<td style="${compareData && currentStore !== 'all' ? '' : 'text-align: center;'}">${totalCellContent}</td>`;
                 }
                 
                 tableHTML += '</tr>';
