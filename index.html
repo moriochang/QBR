@@ -1182,20 +1182,17 @@
                             tableHTML += `<td style="text-align: center; color: #6b7280;">0.0%</td>`;
                         }
                         
-                        // 第二欄：增長率圖表（條形圖）
+                        // 第二欄：增長率圖表（條形圖，不顯示數字）
                         if (growthNum !== 0) {
                             const isGrowth = growthNum > 0;
                             const barColor = isGrowth ? '#22c55e' : '#ef4444';
                             const barWidth = Math.min(Math.abs(growthNum), 100);
-                            const sign = isGrowth ? '+' : '-';
                             
                             const growthCellContent = `
                                 <div style="width: 100%; display: flex; align-items: center;">
                                     ${isGrowth ? `
                                         <div style="flex: 1; display: flex; justify-content: flex-end;">
-                                            <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; left: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
-                                            </div>
+                                            <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px;"></div>
                                         </div>
                                         <div style="width: 2px; height: 22px; background: #6b7280;"></div>
                                         <div style="flex: 1;"></div>
@@ -1203,9 +1200,7 @@
                                         <div style="flex: 1;"></div>
                                         <div style="width: 2px; height: 22px; background: #6b7280;"></div>
                                         <div style="flex: 1; display: flex; justify-content: flex-start;">
-                                            <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; right: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
-                                            </div>
+                                            <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px;"></div>
                                         </div>
                                     `}
                                 </div>`;
