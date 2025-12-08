@@ -1055,10 +1055,10 @@
                 <table class="growth-table">
                     <thead>
                         <tr>
-                            <th style="width: 10%;">Week</th>
-                            <th style="width: ${stores.length > 1 ? '15%' : '18%'};">日期區間</th>`;
+                            <th style="width: ${stores.length > 1 ? '10%' : '15%'};">Week</th>
+                            <th style="width: ${stores.length > 1 ? '15%' : '20%'};">日期區間</th>`;
             
-            const storeWidth = stores.length > 1 ? (60 / stores.length).toFixed(1) : 47;
+            const storeWidth = stores.length > 1 ? (60 / stores.length).toFixed(1) : 25;
             stores.forEach(store => {
                 tableHTML += `<th style="width: ${storeWidth}%;">${store}</th>`;
             });
@@ -1069,8 +1069,8 @@
             
             // 单个门市时，统一增加增长率数据列和增长率图表列
             if (stores.length === 1) {
-                tableHTML += '<th style="background: #3b82f6; color: white; width: 12%;">增長率</th>';
-                tableHTML += '<th style="background: #3b82f6; color: white; width: 13%;">增長率圖表</th>';
+                tableHTML += '<th style="background: #3b82f6; color: white; width: 18%;">增長率</th>';
+                tableHTML += '<th style="background: #3b82f6; color: white; width: 22%;">增長率圖表</th>';
             }
             
             tableHTML += `</tr>
