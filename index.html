@@ -1131,9 +1131,9 @@
                                     <br>
                                     <div style="width: 100%; margin-top: 2px; display: flex; align-items: center;">
                                         ${isGrowth ? `
-                                            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                            <div style="flex: 1; display: flex; justify-content: flex-start;">
                                                 <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                    <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; right: 4px; line-height: 16px;">${sign}${Math.abs(growth)}%</span>
+                                                    <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; left: 4px; line-height: 16px;">${sign}${Math.abs(growth)}%</span>
                                                 </div>
                                             </div>
                                             <div style="width: 2px; height: 18px; background: #6b7280;"></div>
@@ -1141,9 +1141,9 @@
                                         ` : `
                                             <div style="flex: 1;"></div>
                                             <div style="width: 2px; height: 18px; background: #6b7280;"></div>
-                                            <div style="flex: 1; display: flex; justify-content: flex-start;">
+                                            <div style="flex: 1; display: flex; justify-content: flex-end;">
                                                 <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                    <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; left: 4px; line-height: 16px;">${sign}${Math.abs(growth)}%</span>
+                                                    <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; right: 4px; line-height: 16px;">${sign}${Math.abs(growth)}%</span>
                                                 </div>
                                             </div>
                                         `}
@@ -1178,9 +1178,9 @@
                             const growthCellContent = `
                                 <div style="width: 100%; display: flex; align-items: center;">
                                     ${isGrowth ? `
-                                        <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                        <div style="flex: 1; display: flex; justify-content: flex-start;">
                                             <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; right: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; left: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
                                             </div>
                                         </div>
                                         <div style="width: 2px; height: 22px; background: #6b7280;"></div>
@@ -1188,9 +1188,9 @@
                                     ` : `
                                         <div style="flex: 1;"></div>
                                         <div style="width: 2px; height: 22px; background: #6b7280;"></div>
-                                        <div style="flex: 1; display: flex; justify-content: flex-start;">
+                                        <div style="flex: 1; display: flex; justify-content: flex-end;">
                                             <div style="background: ${barColor}; height: 20px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; left: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.8em; position: absolute; right: 4px; line-height: 20px;">${sign}${Math.abs(growth)}%</span>
                                             </div>
                                         </div>
                                     `}
@@ -1230,9 +1230,9 @@
                                 <br>
                                 <div style="width: 100%; margin-top: 2px; display: flex; align-items: center;">
                                     ${isGrowth ? `
-                                        <div style="flex: 1; display: flex; justify-content: flex-end;">
+                                        <div style="flex: 1; display: flex; justify-content: flex-start;">
                                             <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; right: 4px; line-height: 16px;">${sign}${Math.abs(totalGrowth)}%</span>
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; left: 4px; line-height: 16px;">${sign}${Math.abs(totalGrowth)}%</span>
                                             </div>
                                         </div>
                                         <div style="width: 2px; height: 18px; background: #6b7280;"></div>
@@ -1240,9 +1240,9 @@
                                     ` : `
                                         <div style="flex: 1;"></div>
                                         <div style="width: 2px; height: 18px; background: #6b7280;"></div>
-                                        <div style="flex: 1; display: flex; justify-content: flex-start;">
+                                        <div style="flex: 1; display: flex; justify-content: flex-end;">
                                             <div style="background: ${barColor}; height: 16px; width: ${barWidth}%; border-radius: 2px; position: relative;">
-                                                <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; left: 4px; line-height: 16px;">${sign}${Math.abs(totalGrowth)}%</span>
+                                                <span style="color: #000000; font-weight: bold; font-size: 0.7em; position: absolute; right: 4px; line-height: 16px;">${sign}${Math.abs(totalGrowth)}%</span>
                                             </div>
                                         </div>
                                     `}
