@@ -1018,11 +1018,11 @@
             createTrafficChart('trafficChartB', dataB, storesToShow, fileNameB, yAxisMin, yAxisMax);
             
             // 創建數據摘要表格
-            createTrafficSummaryTable('trafficTableA', dataA, storesToShow, fileNameA);
-            createTrafficSummaryTable('trafficTableB', dataB, storesToShow, fileNameB, dataA);
+            createTrafficSummaryTable('trafficTableA', dataA, storesToShow, fileNameA, null, selectedStore);
+            createTrafficSummaryTable('trafficTableB', dataB, storesToShow, fileNameB, dataA, selectedStore);
         }
         
-        function createTrafficSummaryTable(tableId, data, stores, title, compareData) {
+        function createTrafficSummaryTable(tableId, data, stores, title, compareData, currentStore) {
             const maxWeek = data.maxWeek;
             
             // 先收集每家门市的所有数据，找出最高和最低值
@@ -1120,8 +1120,8 @@
                             if (stores.length === 1) {
                                 // 单门市：保存增长率数据，稍后在独立列显示
                                 singleStoreGrowthData = { growth, growthNum };
-                            } else if (growthNum !== 0) {
-                                // 多门市：将增长率显示在数字下方
+                            } else if (growthNum !== 0 && currentStore !== 'all') {
+                                // 多门市且非全部门市模式：将增长率显示在数字下方
                                 const isGrowth = growthNum > 0;
                                 const barColor = isGrowth ? '#22c55e' : '#ef4444';
                                 const barWidth = Math.min(Math.abs(growthNum), 100);
@@ -1150,8 +1150,8 @@
                                     </div>`;
                             }
                         }
-                    } else if (stores.length > 1) {
-                        // 多门市的对比A：添加占位空间和中线以对齐列宽
+                    } else if (stores.length > 1 && currentStore !== 'all') {
+                        // 多门市的对比A（非全部门市模式）：添加占位空间和中线以对齐列宽
                         cellContent += `
                             <br>
                             <div style="width: 100%; margin-top: 2px; display: flex; align-items: center; height: 18px;">
