@@ -729,6 +729,18 @@
                 </div>
                 <div id="categoryStoreCharts"></div>
             </div>
+            
+            <!-- 各品項業績排名 -->
+            <div class="chart-section">
+                <h2>各品項門市業績排名</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>選擇門市：</label>
+                        <div class="quick-buttons" id="categoryRevenueStoreButtons"></div>
+                    </div>
+                </div>
+                <div id="categoryRevenueStoreCharts"></div>
+            </div>
         </div>
         
         <footer style="text-align: center; padding: 30px 20px; color: #6b7280; font-size: 0.9em; margin-top: 50px; border-top: 1px solid #e5e7eb;">
@@ -747,6 +759,7 @@
         let fileNameB = '';
         let charts = {};
         let selectedStore = 'all';
+        let selectedStoreRevenue = 'all';  // 用於業績排名的門市選擇
         let selectedClass = 'all';
         
         // 品項排序
@@ -899,6 +912,7 @@
                     createGrowthRateTable();
                     createProductComparisonCharts();
                     createCategoryStoreCharts();
+                    createCategoryRevenueStoreCharts();
                     
                     document.getElementById('loading').classList.remove('active');
                     document.getElementById('results').style.display = 'block';
@@ -1018,6 +1032,7 @@
                 createGrowthRateTable();
                 createProductComparisonCharts();
                 createCategoryStoreCharts();
+                createCategoryRevenueStoreCharts();
                 
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('results').style.display = 'block';
@@ -1914,13 +1929,15 @@
             createStoreButtonsForContainer('trafficStoreButtons', stores);
             // 創建品項排名的門市按鈕
             createStoreButtonsForContainer('categoryStoreButtons', stores);
+            // 創建品項業績排名的門市按鈕
+            createStoreButtonsForContainer('categoryRevenueStoreButtons', stores, true);
             // 創建品項銷量對比的門市按鈕
             createStoreButtonsForContainer('comparisonStoreButtons', stores);
             // 創建Trade-in的門市按鈕
             createStoreButtonsForContainer('tradeinStoreButtons', stores);
         }
         
-        function createStoreButtonsForContainer(containerId, stores) {
+        function createStoreButtonsForContainer(containerId, stores, isRevenueContainer = false) {
             const container = document.getElementById(containerId);
             if (!container) return;
             
@@ -1929,14 +1946,14 @@
             const allBtn = document.createElement('button');
             allBtn.className = 'quick-btn active';
             allBtn.textContent = '全部門市';
-            allBtn.onclick = () => selectStore('all');
+            allBtn.onclick = () => isRevenueContainer ? selectStoreRevenue('all') : selectStore('all');
             container.appendChild(allBtn);
             
             stores.forEach(store => {
                 const btn = document.createElement('button');
                 btn.className = 'quick-btn';
                 btn.textContent = `${store}`;
-                btn.onclick = () => selectStore(store);
+                btn.onclick = () => isRevenueContainer ? selectStoreRevenue(store) : selectStore(store);
                 container.appendChild(btn);
             });
         }
@@ -2005,6 +2022,27 @@
             event.target.classList.add('active');
             updateCharts();
             calculateSummary();
+        }
+        
+        function selectStoreRevenue(store) {
+            selectedStoreRevenue = store;
+            
+            // 更新業績排名容器的按鈕狀態
+            const container = document.getElementById('categoryRevenueStoreButtons');
+            if (container) {
+                container.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
+                
+                // 找到對應的按鈕並激活
+                Array.from(container.querySelectorAll('.quick-btn')).forEach(btn => {
+                    if ((store === 'all' && btn.textContent === '全部門市') || 
+                        (store !== 'all' && btn.textContent === store)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            // 更新業績排名圖表
+            createCategoryRevenueStoreCharts();
         }
         
         function getComparableWeeks() {
@@ -2797,6 +2835,254 @@
                             ticks: {
                                 callback: function(value) {
                                     return value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ========== 各品項門市業績排名函數 ==========
+        function createCategoryRevenueStoreCharts() {
+            const comparableWeeks = getComparableWeeks();
+            const categories = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods', 'Audio', 'Care', 'Accy', '3rd Party'];
+            const allStores = Array.from(dataA.stores).sort((a, b) => a - b);
+            
+            if (selectedStoreRevenue === 'all') {
+                // 顯示所有門市的業績對比圖表
+                let chartsHTML = '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;">';
+                
+                categories.forEach((category, index) => {
+                    const chartId = `categoryRevenueChart${index}`;
+                    chartsHTML += `
+                        <div>
+                            <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;">${category}</h3>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="${chartId}"></canvas>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                chartsHTML += '</div>';
+                document.getElementById('categoryRevenueStoreCharts').innerHTML = chartsHTML;
+                
+                setTimeout(() => {
+                    categories.forEach((category, index) => {
+                        createCategoryRevenueStoreChart(`categoryRevenueChart${index}`, category, allStores, comparableWeeks);
+                    });
+                }, 100);
+            } else {
+                // 顯示單一門市的各品項業績對比
+                let chartsHTML = `
+                    <div style="max-width: 1000px; margin: 0 auto;">
+                        <h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStoreRevenue} - 各品項業績對比</h3>
+                        <div class="chart-container" style="height: 500px;">
+                            <canvas id="singleStoreRevenueChart"></canvas>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('categoryRevenueStoreCharts').innerHTML = chartsHTML;
+                
+                setTimeout(() => {
+                    createSingleStoreCategoryRevenueChart('singleStoreRevenueChart', selectedStoreRevenue, categories, comparableWeeks);
+                }, 100);
+            }
+        }
+        
+        function createCategoryRevenueStoreChart(canvasId, category, stores, comparableWeeks) {
+            const revenueDataA = [];
+            const revenueDataB = [];
+            
+            stores.forEach(store => {
+                const revenueA = dataA.data
+                    .filter(d => d.store == store && d.class === category && d.weekNum <= comparableWeeks)
+                    .reduce((sum, d) => sum + (parseFloat(d.revenue) || 0), 0);
+                
+                const revenueB = dataB.data
+                    .filter(d => d.store == store && d.class === category && d.weekNum <= comparableWeeks)
+                    .reduce((sum, d) => sum + (parseFloat(d.revenue) || 0), 0);
+                
+                revenueDataA.push(revenueA);
+                revenueDataB.push(revenueB);
+            });
+            
+            const storeLabels = stores.map(s => `${s}`);
+            
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: storeLabels,
+                    datasets: [
+                        {
+                            label: fileNameA,
+                            data: revenueDataA,
+                            backgroundColor: '#22c55e',
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#22c55e',
+                                font: {
+                                    weight: 'bold',
+                                    size: 10
+                                },
+                                formatter: function(value) {
+                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                }
+                            }
+                        },
+                        {
+                            label: fileNameB,
+                            data: revenueDataB,
+                            backgroundColor: '#f97316',
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#f97316',
+                                font: {
+                                    weight: 'bold',
+                                    size: 10
+                                },
+                                formatter: function(value) {
+                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                }
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 25
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'K';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createSingleStoreCategoryRevenueChart(canvasId, store, categories, comparableWeeks) {
+            const revenueDataA = [];
+            const revenueDataB = [];
+            
+            categories.forEach(category => {
+                const revenueA = dataA.data
+                    .filter(d => d.store == store && d.class === category && d.weekNum <= comparableWeeks)
+                    .reduce((sum, d) => sum + (parseFloat(d.revenue) || 0), 0);
+                
+                const revenueB = dataB.data
+                    .filter(d => d.store == store && d.class === category && d.weekNum <= comparableWeeks)
+                    .reduce((sum, d) => sum + (parseFloat(d.revenue) || 0), 0);
+                
+                revenueDataA.push(revenueA);
+                revenueDataB.push(revenueB);
+            });
+            
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [
+                        {
+                            label: fileNameA,
+                            data: revenueDataA,
+                            backgroundColor: '#22c55e',
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#22c55e',
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                },
+                                formatter: function(value) {
+                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                }
+                            }
+                        },
+                        {
+                            label: fileNameB,
+                            data: revenueDataB,
+                            backgroundColor: '#f97316',
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#f97316',
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                },
+                                formatter: function(value) {
+                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                }
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 30
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + (value / 1000).toFixed(0) + 'K';
                                 }
                             }
                         }
