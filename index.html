@@ -2476,6 +2476,7 @@
         function createProductChart(canvasId, products, comparableWeeks) {
             const qtyDataA = [];
             const qtyDataB = [];
+            const growthRates = [];
             
             products.forEach(product => {
                 let filteredA = dataA.data.filter(d => d.class === product && d.weekNum <= comparableWeeks);
@@ -2491,6 +2492,13 @@
                 
                 qtyDataA.push(qtyA);
                 qtyDataB.push(qtyB);
+                
+                // 計算成長率
+                let growthRate = 0;
+                if (qtyA > 0) {
+                    growthRate = ((qtyB - qtyA) / qtyA * 100).toFixed(1);
+                }
+                growthRates.push(parseFloat(growthRate));
             });
             
             const ctx = document.getElementById(canvasId).getContext('2d');
@@ -2545,7 +2553,8 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            top: 30
+                            top: 30,
+                            bottom: 30
                         }
                     },
                     plugins: {
@@ -2561,6 +2570,17 @@
                         }
                     },
                     scales: {
+                        x: {
+                            ticks: {
+                                callback: function(value, index) {
+                                    const product = products[index];
+                                    const growth = growthRates[index];
+                                    const symbol = growth > 0 ? '▲' : growth < 0 ? '▼' : '';
+                                    const color = growth > 0 ? '#22c55e' : growth < 0 ? '#ef4444' : '#6b7280';
+                                    return product;
+                                }
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             ticks: {
@@ -2570,7 +2590,30 @@
                             }
                         }
                     }
-                }
+                },
+                plugins: [{
+                    afterDraw: function(chart) {
+                        const ctx = chart.ctx;
+                        const xAxis = chart.scales.x;
+                        const yAxis = chart.scales.y;
+                        
+                        ctx.textAlign = 'center';
+                        ctx.font = 'bold 12px Arial';
+                        
+                        products.forEach((product, index) => {
+                            const growth = growthRates[index];
+                            if (growth !== 0) {
+                                const symbol = growth > 0 ? '▲' : '▼';
+                                const color = growth > 0 ? '#22c55e' : '#ef4444';
+                                const x = xAxis.getPixelForValue(index);
+                                const y = yAxis.bottom + 20;
+                                
+                                ctx.fillStyle = color;
+                                ctx.fillText(`${symbol} ${growth > 0 ? '+' : ''}${growth}%`, x, y);
+                            }
+                        });
+                    }
+                }]
             });
         }
         
