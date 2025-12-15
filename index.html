@@ -2554,7 +2554,7 @@
                     layout: {
                         padding: {
                             top: 30,
-                            bottom: 70
+                            bottom: 80
                         }
                     },
                     plugins: {
@@ -2572,7 +2572,10 @@
                     scales: {
                         x: {
                             ticks: {
-                                padding: 10
+                                padding: 10,
+                                font: {
+                                    weight: 'bold'
+                                }
                             }
                         },
                         y: {
@@ -2604,7 +2607,7 @@
                                 const color = growth > 0 ? '#22c55e' : '#ef4444';
                                 
                                 const x = xAxis.getPixelForValue(index);
-                                const baseY = yAxis.bottom + 40; // 增加距离，避免遮挡品项名称
+                                const baseY = yAxis.bottom + 50; // 增加到50px，避免遮挡品项名称
                                 
                                 // 绘制数量增减（第一行）
                                 ctx.fillStyle = color;
