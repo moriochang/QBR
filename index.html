@@ -759,7 +759,6 @@
         let fileNameB = '';
         let charts = {};
         let selectedStore = 'all';
-        let selectedStoreRevenue = 'all';  // 用於業績排名的門市選擇
         let selectedClass = 'all';
         
         // 品項排序
@@ -1930,14 +1929,14 @@
             // 創建品項排名的門市按鈕
             createStoreButtonsForContainer('categoryStoreButtons', stores);
             // 創建品項業績排名的門市按鈕
-            createStoreButtonsForContainer('categoryRevenueStoreButtons', stores, true);
+            createStoreButtonsForContainer('categoryRevenueStoreButtons', stores);
             // 創建品項銷量對比的門市按鈕
             createStoreButtonsForContainer('comparisonStoreButtons', stores);
             // 創建Trade-in的門市按鈕
             createStoreButtonsForContainer('tradeinStoreButtons', stores);
         }
         
-        function createStoreButtonsForContainer(containerId, stores, isRevenueContainer = false) {
+        function createStoreButtonsForContainer(containerId, stores) {
             const container = document.getElementById(containerId);
             if (!container) return;
             
@@ -1946,14 +1945,14 @@
             const allBtn = document.createElement('button');
             allBtn.className = 'quick-btn active';
             allBtn.textContent = '全部門市';
-            allBtn.onclick = () => isRevenueContainer ? selectStoreRevenue('all') : selectStore('all');
+            allBtn.onclick = () => selectStore('all');
             container.appendChild(allBtn);
             
             stores.forEach(store => {
                 const btn = document.createElement('button');
                 btn.className = 'quick-btn';
                 btn.textContent = `${store}`;
-                btn.onclick = () => isRevenueContainer ? selectStoreRevenue(store) : selectStore(store);
+                btn.onclick = () => selectStore(store);
                 container.appendChild(btn);
             });
         }
@@ -1992,7 +1991,7 @@
             selectedStore = store;
             
             // 更新所有容器的按鈕狀態
-            ['storeButtons', 'trafficStoreButtons', 'categoryStoreButtons', 'comparisonStoreButtons', 'tradeinStoreButtons'].forEach(containerId => {
+            ['storeButtons', 'trafficStoreButtons', 'categoryStoreButtons', 'categoryRevenueStoreButtons', 'comparisonStoreButtons', 'tradeinStoreButtons'].forEach(containerId => {
                 const container = document.getElementById(containerId);
                 if (container) {
                     container.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
@@ -2014,6 +2013,7 @@
             createTradeinCharts();
             createTrafficCharts();
             createCategoryStoreCharts();
+            createCategoryRevenueStoreCharts();
         }
         
         function selectClass(cls) {
@@ -2022,27 +2022,6 @@
             event.target.classList.add('active');
             updateCharts();
             calculateSummary();
-        }
-        
-        function selectStoreRevenue(store) {
-            selectedStoreRevenue = store;
-            
-            // 更新業績排名容器的按鈕狀態
-            const container = document.getElementById('categoryRevenueStoreButtons');
-            if (container) {
-                container.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
-                
-                // 找到對應的按鈕並激活
-                Array.from(container.querySelectorAll('.quick-btn')).forEach(btn => {
-                    if ((store === 'all' && btn.textContent === '全部門市') || 
-                        (store !== 'all' && btn.textContent === store)) {
-                        btn.classList.add('active');
-                    }
-                });
-            }
-            
-            // 更新業績排名圖表
-            createCategoryRevenueStoreCharts();
         }
         
         function getComparableWeeks() {
@@ -2849,7 +2828,7 @@
             const categories = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods', 'Audio', 'Care', 'Accy', '3rd Party'];
             const allStores = Array.from(dataA.stores).sort((a, b) => a - b);
             
-            if (selectedStoreRevenue === 'all') {
+            if (selectedStore === 'all') {
                 // 顯示所有門市的業績對比圖表
                 let chartsHTML = '<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;">';
                 
@@ -2877,7 +2856,7 @@
                 // 顯示單一門市的各品項業績對比
                 let chartsHTML = `
                     <div style="max-width: 1000px; margin: 0 auto;">
-                        <h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStoreRevenue} - 各品項業績對比</h3>
+                        <h3 style="text-align: center; color: #1e40af; margin-bottom: 30px;">門市 ${selectedStore} - 各品項業績對比</h3>
                         <div class="chart-container" style="height: 500px;">
                             <canvas id="singleStoreRevenueChart"></canvas>
                         </div>
@@ -2887,7 +2866,7 @@
                 document.getElementById('categoryRevenueStoreCharts').innerHTML = chartsHTML;
                 
                 setTimeout(() => {
-                    createSingleStoreCategoryRevenueChart('singleStoreRevenueChart', selectedStoreRevenue, categories, comparableWeeks);
+                    createSingleStoreCategoryRevenueChart('singleStoreRevenueChart', selectedStore, categories, comparableWeeks);
                 }, 100);
             }
         }
@@ -2935,7 +2914,7 @@
                                     size: 10
                                 },
                                 formatter: function(value) {
-                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                    return value > 0 ? Math.round(value / 1000) + 'K' : '';
                                 }
                             }
                         },
@@ -2952,7 +2931,7 @@
                                     size: 10
                                 },
                                 formatter: function(value) {
-                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                    return value > 0 ? Math.round(value / 1000) + 'K' : '';
                                 }
                             }
                         }
@@ -2973,7 +2952,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                    return context.dataset.label + ': ' + Math.round(context.parsed.y).toLocaleString();
                                 }
                             }
                         }
@@ -2983,7 +2962,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + (value / 1000).toFixed(0) + 'K';
+                                    return Math.round(value).toLocaleString();
                                 }
                             }
                         }
@@ -3033,7 +3012,7 @@
                                     size: 11
                                 },
                                 formatter: function(value) {
-                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                    return value > 0 ? Math.round(value / 1000) + 'K' : '';
                                 }
                             }
                         },
@@ -3050,7 +3029,7 @@
                                     size: 11
                                 },
                                 formatter: function(value) {
-                                    return value > 0 ? '$' + (value / 1000).toFixed(0) + 'K' : '';
+                                    return value > 0 ? Math.round(value / 1000) + 'K' : '';
                                 }
                             }
                         }
@@ -3072,7 +3051,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                                    return context.dataset.label + ': ' + Math.round(context.parsed.y).toLocaleString();
                                 }
                             }
                         }
@@ -3082,7 +3061,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + (value / 1000).toFixed(0) + 'K';
+                                    return Math.round(value).toLocaleString();
                                 }
                             }
                         }
