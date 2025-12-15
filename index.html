@@ -2553,8 +2553,8 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            top: 50,
-                            bottom: 10
+                            top: 30,
+                            bottom: 50
                         }
                     },
                     plugins: {
@@ -2583,8 +2583,8 @@
                 plugins: [{
                     afterDraw: function(chart) {
                         const ctx = chart.ctx;
-                        const meta0 = chart.getDatasetMeta(0); // 对比A的数据
-                        const meta1 = chart.getDatasetMeta(1); // 对比B的数据
+                        const xAxis = chart.scales.x;
+                        const yAxis = chart.scales.y;
                         
                         ctx.textAlign = 'center';
                         
@@ -2598,21 +2598,18 @@
                                 const symbol = growth > 0 ? '▲' : '▼';
                                 const color = growth > 0 ? '#22c55e' : '#ef4444';
                                 
-                                // 找到较高的长条图顶端位置
-                                const bar0 = meta0.data[index];
-                                const bar1 = meta1.data[index];
-                                const maxY = Math.min(bar0.y, bar1.y); // Y轴是倒置的，所以用Math.min
-                                const x = bar0.x;
+                                const x = xAxis.getPixelForValue(index);
+                                const baseY = yAxis.bottom + 25; // 品项名称下方的起始位置
                                 
                                 // 绘制数量增减（第一行）
                                 ctx.fillStyle = color;
                                 ctx.font = 'bold 11px Arial';
                                 const diffText = qtyDiff > 0 ? `+${qtyDiff.toLocaleString()}` : qtyDiff.toLocaleString();
-                                ctx.fillText(diffText, x, maxY - 30);
+                                ctx.fillText(diffText, x, baseY);
                                 
                                 // 绘制成长率符号和百分比（第二行）
                                 ctx.font = 'bold 12px Arial';
-                                ctx.fillText(`${symbol} ${growth > 0 ? '+' : ''}${growth}%`, x, maxY - 15);
+                                ctx.fillText(`${symbol} ${growth > 0 ? '+' : ''}${growth}%`, x, baseY + 15);
                             }
                         });
                     }
