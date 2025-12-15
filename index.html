@@ -2553,8 +2553,8 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            top: 30,
-                            bottom: 30
+                            top: 50,
+                            bottom: 10
                         }
                     },
                     plugins: {
@@ -2570,17 +2570,6 @@
                         }
                     },
                     scales: {
-                        x: {
-                            ticks: {
-                                callback: function(value, index) {
-                                    const product = products[index];
-                                    const growth = growthRates[index];
-                                    const symbol = growth > 0 ? '▲' : growth < 0 ? '▼' : '';
-                                    const color = growth > 0 ? '#22c55e' : growth < 0 ? '#ef4444' : '#6b7280';
-                                    return product;
-                                }
-                            }
-                        },
                         y: {
                             beginAtZero: true,
                             ticks: {
@@ -2594,22 +2583,36 @@
                 plugins: [{
                     afterDraw: function(chart) {
                         const ctx = chart.ctx;
-                        const xAxis = chart.scales.x;
-                        const yAxis = chart.scales.y;
+                        const meta0 = chart.getDatasetMeta(0); // 对比A的数据
+                        const meta1 = chart.getDatasetMeta(1); // 对比B的数据
                         
                         ctx.textAlign = 'center';
-                        ctx.font = 'bold 12px Arial';
                         
                         products.forEach((product, index) => {
                             const growth = growthRates[index];
+                            const qtyA = qtyDataA[index];
+                            const qtyB = qtyDataB[index];
+                            const qtyDiff = qtyB - qtyA;
+                            
                             if (growth !== 0) {
                                 const symbol = growth > 0 ? '▲' : '▼';
                                 const color = growth > 0 ? '#22c55e' : '#ef4444';
-                                const x = xAxis.getPixelForValue(index);
-                                const y = yAxis.bottom + 20;
                                 
+                                // 找到较高的长条图顶端位置
+                                const bar0 = meta0.data[index];
+                                const bar1 = meta1.data[index];
+                                const maxY = Math.min(bar0.y, bar1.y); // Y轴是倒置的，所以用Math.min
+                                const x = bar0.x;
+                                
+                                // 绘制数量增减（第一行）
                                 ctx.fillStyle = color;
-                                ctx.fillText(`${symbol} ${growth > 0 ? '+' : ''}${growth}%`, x, y);
+                                ctx.font = 'bold 11px Arial';
+                                const diffText = qtyDiff > 0 ? `+${qtyDiff.toLocaleString()}` : qtyDiff.toLocaleString();
+                                ctx.fillText(diffText, x, maxY - 30);
+                                
+                                // 绘制成长率符号和百分比（第二行）
+                                ctx.font = 'bold 12px Arial';
+                                ctx.fillText(`${symbol} ${growth > 0 ? '+' : ''}${growth}%`, x, maxY - 15);
                             }
                         });
                     }
