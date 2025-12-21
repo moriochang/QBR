@@ -645,9 +645,12 @@
                 
                 <h3 class="chart-title">銷售趨勢對比</h3>
                 
-                <div class="chart-container" style="height: 450px; margin-bottom: 50px;">
+                <div class="chart-container" style="height: 450px; margin-bottom: 30px;">
                     <canvas id="trendChart"></canvas>
                 </div>
+                
+                <!-- 周数据对比表格 -->
+                <div id="weeklyDataTable" style="margin-top: 20px;"></div>
             </div>
             
             <!-- 主力產品增長率 -->
@@ -2530,6 +2533,71 @@
                     }
                 }
             });
+            
+            // 更新周数据表格
+            createWeeklyDataTable(weeks, qtyA, qtyB);
+        }
+        
+        function createWeeklyDataTable(weeks, qtyA, qtyB) {
+            const container = document.getElementById('weeklyDataTable');
+            
+            // 只在选择单个品项时显示表格
+            if (selectedClass === 'all') {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let tableHTML = `
+                <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">周數據對比</h4>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table class="growth-table" style="width: 100%; min-width: 600px;">
+                        <thead>
+                            <tr style="background: #3b82f6; color: white;">
+                                <th style="width: 80px;">週次</th>`;
+            
+            // 添加每周的列头
+            weeks.forEach(week => {
+                tableHTML += `<th style="min-width: 80px;">${week}</th>`;
+            });
+            
+            tableHTML += `
+                                <th style="min-width: 80px;">總計</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            
+            // 对比A行
+            const totalA = qtyA.reduce((sum, val) => sum + val, 0);
+            tableHTML += `
+                            <tr>
+                                <td style="background: #f0fdf4; font-weight: bold; text-align: center;">${fileNameA}</td>`;
+            
+            qtyA.forEach(qty => {
+                tableHTML += `<td style="text-align: center; background: #f0fdf4;">${qty.toLocaleString()}</td>`;
+            });
+            
+            tableHTML += `
+                                <td style="text-align: center; background: #dcfce7; font-weight: bold;">${totalA.toLocaleString()}</td>
+                            </tr>`;
+            
+            // 对比B行
+            const totalB = qtyB.reduce((sum, val) => sum + val, 0);
+            tableHTML += `
+                            <tr>
+                                <td style="background: #fff7ed; font-weight: bold; text-align: center;">${fileNameB}</td>`;
+            
+            qtyB.forEach(qty => {
+                tableHTML += `<td style="text-align: center; background: #fff7ed;">${qty.toLocaleString()}</td>`;
+            });
+            
+            tableHTML += `
+                                <td style="text-align: center; background: #fed7aa; font-weight: bold;">${totalB.toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>`;
+            
+            container.innerHTML = tableHTML;
         }
         
         function calculateSummary() {
