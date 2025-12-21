@@ -2592,10 +2592,67 @@
             
             tableHTML += `
                                 <td style="text-align: center; background: #fed7aa; font-weight: bold;">${totalB.toLocaleString()}</td>
+                            </tr>`;
+            
+            // 台数增减行
+            let diffHTML = `
+                            <tr>
+                                <td style="background: #f3f4f6; font-weight: bold; text-align: center;">台數增減</td>`;
+            
+            let totalDiff = 0;
+            weeks.forEach((week, index) => {
+                const diff = qtyB[index] - qtyA[index];
+                totalDiff += diff;
+                const color = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#6b7280';
+                const sign = diff > 0 ? '+' : '';
+                diffHTML += `<td style="text-align: center; color: ${color}; font-weight: bold; background: #f3f4f6;">${sign}${diff.toLocaleString()}</td>`;
+            });
+            
+            const totalDiffColor = totalDiff > 0 ? '#22c55e' : totalDiff < 0 ? '#ef4444' : '#6b7280';
+            const totalDiffSign = totalDiff > 0 ? '+' : '';
+            diffHTML += `
+                                <td style="text-align: center; color: ${totalDiffColor}; font-weight: bold; background: #e5e7eb;">${totalDiffSign}${totalDiff.toLocaleString()}</td>
+                            </tr>`;
+            
+            tableHTML += diffHTML;
+            
+            // 增长率行
+            let growthHTML = `
+                            <tr>
+                                <td style="background: #f3f4f6; font-weight: bold; text-align: center;">增長率</td>`;
+            
+            const totalGrowth = totalA > 0 ? ((totalB - totalA) / totalA * 100).toFixed(1) : 0;
+            weeks.forEach((week, index) => {
+                const growth = qtyA[index] > 0 ? ((qtyB[index] - qtyA[index]) / qtyA[index] * 100).toFixed(1) : 0;
+                const growthNum = parseFloat(growth);
+                
+                if (growthNum === 0) {
+                    growthHTML += `<td style="text-align: center; color: #6b7280; background: #f3f4f6;">0.0%</td>`;
+                } else {
+                    const color = growthNum > 0 ? '#22c55e' : '#ef4444';
+                    const symbol = growthNum > 0 ? '▲' : '▼';
+                    const sign = growthNum > 0 ? '+' : '';
+                    growthHTML += `<td style="text-align: center; color: ${color}; font-weight: bold; background: #f3f4f6;">${symbol} ${sign}${growth}%</td>`;
+                }
+            });
+            
+            const totalGrowthNum = parseFloat(totalGrowth);
+            if (totalGrowthNum === 0) {
+                growthHTML += `<td style="text-align: center; color: #6b7280; font-weight: bold; background: #e5e7eb;">0.0%</td>`;
+            } else {
+                const totalGrowthColor = totalGrowthNum > 0 ? '#22c55e' : '#ef4444';
+                const totalGrowthSymbol = totalGrowthNum > 0 ? '▲' : '▼';
+                const totalGrowthSign = totalGrowthNum > 0 ? '+' : '';
+                growthHTML += `<td style="text-align: center; color: ${totalGrowthColor}; font-weight: bold; background: #e5e7eb;">${totalGrowthSymbol} ${totalGrowthSign}${totalGrowth}%</td>`;
+            }
+            
+            growthHTML += `
                             </tr>
                         </tbody>
                     </table>
                 </div>`;
+            
+            tableHTML += growthHTML;
             
             container.innerHTML = tableHTML;
         }
