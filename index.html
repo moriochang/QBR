@@ -2552,20 +2552,48 @@
             const canvas = document.getElementById('trendChart');
             
             // 计算表格宽度以匹配图表
-            let tableWidth = '100%';
-            let firstColWidth = '80px';
-            let dataColWidth = 'auto';
+            let firstColWidth = '100px';
+            let lastColWidth = '100px';
+            let dataColWidths = [];
             
-            if (chart && chart.chartArea) {
+            if (chart && chart.scales && chart.scales.x) {
+                const xScale = chart.scales.x;
                 const chartArea = chart.chartArea;
-                const chartWidth = canvas.offsetWidth;
-                const dataAreaWidth = chartArea.right - chartArea.left;
-                const leftPadding = chartArea.left;
                 
-                // 计算每列宽度
-                const colWidth = dataAreaWidth / weeks.length;
-                dataColWidth = colWidth + 'px';
-                firstColWidth = leftPadding + 'px';
+                // 获取第一个和最后一个刻度的像素位置
+                const firstTickPixel = xScale.getPixelForValue(0);
+                const lastTickPixel = xScale.getPixelForValue(weeks.length - 1);
+                
+                // 计算第一列宽度（图表左边到第一个刻度）
+                firstColWidth = firstTickPixel + 'px';
+                
+                // 计算每个数据列的宽度
+                for (let i = 0; i < weeks.length; i++) {
+                    if (i === 0) {
+                        // 第一个数据列：从第一个刻度到第二个刻度的中点
+                        const nextTickPixel = xScale.getPixelForValue(1);
+                        const width = (nextTickPixel - firstTickPixel);
+                        dataColWidths.push(width + 'px');
+                    } else if (i === weeks.length - 1) {
+                        // 最后一个数据列：从倒数第二个刻度中点到最后一个刻度
+                        const prevTickPixel = xScale.getPixelForValue(i - 1);
+                        const width = (lastTickPixel - prevTickPixel);
+                        dataColWidths.push(width + 'px');
+                    } else {
+                        // 中间的数据列：前后刻度中点之间的距离
+                        const currentTickPixel = xScale.getPixelForValue(i);
+                        const nextTickPixel = xScale.getPixelForValue(i + 1);
+                        const width = (nextTickPixel - currentTickPixel);
+                        dataColWidths.push(width + 'px');
+                    }
+                }
+                
+                // 计算最后一列（总计）的宽度
+                const canvasWidth = canvas.offsetWidth;
+                lastColWidth = (canvasWidth - lastTickPixel) + 'px';
+            } else {
+                // 如果图表还未渲染，使用默认值
+                dataColWidths = weeks.map(() => 'auto');
             }
             
             let tableHTML = `
@@ -2574,15 +2602,16 @@
                     <table class="growth-table" style="width: 100%; table-layout: fixed;">
                         <thead>
                             <tr style="background: #3b82f6; color: white;">
-                                <th style="width: ${firstColWidth};">週次</th>`;
+                                <th style="width: ${firstColWidth}; text-align: center;">週次</th>`;
             
             // 添加每周的列头
-            weeks.forEach(week => {
-                tableHTML += `<th style="width: ${dataColWidth};">${week}</th>`;
+            weeks.forEach((week, index) => {
+                const width = dataColWidths[index] || 'auto';
+                tableHTML += `<th style="width: ${width}; text-align: center;">${week}</th>`;
             });
             
             tableHTML += `
-                                <th style="width: ${dataColWidth};">總計</th>
+                                <th style="width: ${lastColWidth}; text-align: center;">總計</th>
                             </tr>
                         </thead>
                         <tbody>`;
