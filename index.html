@@ -2547,71 +2547,21 @@
                 return;
             }
             
-            // 获取图表的canvas元素和chart实例
-            const chart = charts.trendChart;
-            const canvas = document.getElementById('trendChart');
-            
-            // 计算表格宽度以匹配图表
-            let firstColWidth = '100px';
-            let lastColWidth = '100px';
-            let dataColWidths = [];
-            
-            if (chart && chart.scales && chart.scales.x) {
-                const xScale = chart.scales.x;
-                const chartArea = chart.chartArea;
-                
-                // 获取第一个和最后一个刻度的像素位置
-                const firstTickPixel = xScale.getPixelForValue(0);
-                const lastTickPixel = xScale.getPixelForValue(weeks.length - 1);
-                
-                // 计算第一列宽度（图表左边到第一个刻度）
-                firstColWidth = firstTickPixel + 'px';
-                
-                // 计算每个数据列的宽度
-                for (let i = 0; i < weeks.length; i++) {
-                    if (i === 0) {
-                        // 第一个数据列：从第一个刻度到第二个刻度的中点
-                        const nextTickPixel = xScale.getPixelForValue(1);
-                        const width = (nextTickPixel - firstTickPixel);
-                        dataColWidths.push(width + 'px');
-                    } else if (i === weeks.length - 1) {
-                        // 最后一个数据列：从倒数第二个刻度中点到最后一个刻度
-                        const prevTickPixel = xScale.getPixelForValue(i - 1);
-                        const width = (lastTickPixel - prevTickPixel);
-                        dataColWidths.push(width + 'px');
-                    } else {
-                        // 中间的数据列：前后刻度中点之间的距离
-                        const currentTickPixel = xScale.getPixelForValue(i);
-                        const nextTickPixel = xScale.getPixelForValue(i + 1);
-                        const width = (nextTickPixel - currentTickPixel);
-                        dataColWidths.push(width + 'px');
-                    }
-                }
-                
-                // 计算最后一列（总计）的宽度
-                const canvasWidth = canvas.offsetWidth;
-                lastColWidth = (canvasWidth - lastTickPixel) + 'px';
-            } else {
-                // 如果图表还未渲染，使用默认值
-                dataColWidths = weeks.map(() => 'auto');
-            }
-            
             let tableHTML = `
                 <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">周數據對比</h4>
                 <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table class="growth-table" style="width: 100%; table-layout: fixed;">
+                    <table class="growth-table" style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr style="background: #3b82f6; color: white;">
-                                <th style="width: ${firstColWidth}; text-align: center;">週次</th>`;
+                                <th style="padding: 10px; text-align: center; white-space: nowrap;">週次</th>`;
             
             // 添加每周的列头
-            weeks.forEach((week, index) => {
-                const width = dataColWidths[index] || 'auto';
-                tableHTML += `<th style="width: ${width}; text-align: center;">${week}</th>`;
+            weeks.forEach(week => {
+                tableHTML += `<th style="padding: 10px; text-align: center;">${week}</th>`;
             });
             
             tableHTML += `
-                                <th style="width: ${lastColWidth}; text-align: center;">總計</th>
+                                <th style="padding: 10px; text-align: center; white-space: nowrap;">總計</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -2620,34 +2570,34 @@
             const totalA = qtyA.reduce((sum, val) => sum + val, 0);
             tableHTML += `
                             <tr>
-                                <td style="background: #f0fdf4; font-weight: bold; text-align: center;">${fileNameA}</td>`;
+                                <td style="background: #f0fdf4; font-weight: bold; text-align: center; padding: 10px; white-space: nowrap;">${fileNameA}</td>`;
             
             qtyA.forEach(qty => {
-                tableHTML += `<td style="text-align: center; background: #f0fdf4;">${qty.toLocaleString()}</td>`;
+                tableHTML += `<td style="text-align: center; background: #f0fdf4; padding: 10px;">${qty.toLocaleString()}</td>`;
             });
             
             tableHTML += `
-                                <td style="text-align: center; background: #dcfce7; font-weight: bold;">${totalA.toLocaleString()}</td>
+                                <td style="text-align: center; background: #dcfce7; font-weight: bold; padding: 10px;">${totalA.toLocaleString()}</td>
                             </tr>`;
             
             // 对比B行
             const totalB = qtyB.reduce((sum, val) => sum + val, 0);
             tableHTML += `
                             <tr>
-                                <td style="background: #fff7ed; font-weight: bold; text-align: center;">${fileNameB}</td>`;
+                                <td style="background: #fff7ed; font-weight: bold; text-align: center; padding: 10px; white-space: nowrap;">${fileNameB}</td>`;
             
             qtyB.forEach(qty => {
-                tableHTML += `<td style="text-align: center; background: #fff7ed;">${qty.toLocaleString()}</td>`;
+                tableHTML += `<td style="text-align: center; background: #fff7ed; padding: 10px;">${qty.toLocaleString()}</td>`;
             });
             
             tableHTML += `
-                                <td style="text-align: center; background: #fed7aa; font-weight: bold;">${totalB.toLocaleString()}</td>
+                                <td style="text-align: center; background: #fed7aa; font-weight: bold; padding: 10px;">${totalB.toLocaleString()}</td>
                             </tr>`;
             
             // 台数增减行
             let diffHTML = `
                             <tr>
-                                <td style="background: #f3f4f6; font-weight: bold; text-align: center;">台數增減</td>`;
+                                <td style="background: #f3f4f6; font-weight: bold; text-align: center; padding: 10px; white-space: nowrap;">台數增減</td>`;
             
             let totalDiff = 0;
             weeks.forEach((week, index) => {
@@ -2655,13 +2605,13 @@
                 totalDiff += diff;
                 const color = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#6b7280';
                 const sign = diff > 0 ? '+' : '';
-                diffHTML += `<td style="text-align: center; color: ${color}; font-weight: bold; background: #f3f4f6;">${sign}${diff.toLocaleString()}</td>`;
+                diffHTML += `<td style="text-align: center; color: ${color}; font-weight: bold; background: #f3f4f6; padding: 10px;">${sign}${diff.toLocaleString()}</td>`;
             });
             
             const totalDiffColor = totalDiff > 0 ? '#22c55e' : totalDiff < 0 ? '#ef4444' : '#6b7280';
             const totalDiffSign = totalDiff > 0 ? '+' : '';
             diffHTML += `
-                                <td style="text-align: center; color: ${totalDiffColor}; font-weight: bold; background: #e5e7eb;">${totalDiffSign}${totalDiff.toLocaleString()}</td>
+                                <td style="text-align: center; color: ${totalDiffColor}; font-weight: bold; background: #e5e7eb; padding: 10px;">${totalDiffSign}${totalDiff.toLocaleString()}</td>
                             </tr>`;
             
             tableHTML += diffHTML;
@@ -2669,7 +2619,7 @@
             // 增长率行
             let growthHTML = `
                             <tr>
-                                <td style="background: #f3f4f6; font-weight: bold; text-align: center;">增長率</td>`;
+                                <td style="background: #f3f4f6; font-weight: bold; text-align: center; padding: 10px; white-space: nowrap;">增長率</td>`;
             
             const totalGrowth = totalA > 0 ? ((totalB - totalA) / totalA * 100).toFixed(1) : 0;
             weeks.forEach((week, index) => {
@@ -2677,23 +2627,23 @@
                 const growthNum = parseFloat(growth);
                 
                 if (growthNum === 0) {
-                    growthHTML += `<td style="text-align: center; color: #6b7280; background: #f3f4f6;">0.0%</td>`;
+                    growthHTML += `<td style="text-align: center; color: #6b7280; background: #f3f4f6; padding: 10px;">0.0%</td>`;
                 } else {
                     const color = growthNum > 0 ? '#22c55e' : '#ef4444';
                     const symbol = growthNum > 0 ? '▲' : '▼';
                     const sign = growthNum > 0 ? '+' : '';
-                    growthHTML += `<td style="text-align: center; color: ${color}; font-weight: bold; background: #f3f4f6;">${symbol} ${sign}${growth}%</td>`;
+                    growthHTML += `<td style="text-align: center; color: ${color}; font-weight: bold; background: #f3f4f6; padding: 10px;">${symbol} ${sign}${growth}%</td>`;
                 }
             });
             
             const totalGrowthNum = parseFloat(totalGrowth);
             if (totalGrowthNum === 0) {
-                growthHTML += `<td style="text-align: center; color: #6b7280; font-weight: bold; background: #e5e7eb;">0.0%</td>`;
+                growthHTML += `<td style="text-align: center; color: #6b7280; font-weight: bold; background: #e5e7eb; padding: 10px;">0.0%</td>`;
             } else {
                 const totalGrowthColor = totalGrowthNum > 0 ? '#22c55e' : '#ef4444';
                 const totalGrowthSymbol = totalGrowthNum > 0 ? '▲' : '▼';
                 const totalGrowthSign = totalGrowthNum > 0 ? '+' : '';
-                growthHTML += `<td style="text-align: center; color: ${totalGrowthColor}; font-weight: bold; background: #e5e7eb;">${totalGrowthSymbol} ${totalGrowthSign}${totalGrowth}%</td>`;
+                growthHTML += `<td style="text-align: center; color: ${totalGrowthColor}; font-weight: bold; background: #e5e7eb; padding: 10px;">${totalGrowthSymbol} ${totalGrowthSign}${totalGrowth}%</td>`;
             }
             
             growthHTML += `
