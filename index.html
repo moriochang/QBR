@@ -2547,21 +2547,42 @@
                 return;
             }
             
+            // 获取图表的canvas元素和chart实例
+            const chart = charts.trendChart;
+            const canvas = document.getElementById('trendChart');
+            
+            // 计算表格宽度以匹配图表
+            let tableWidth = '100%';
+            let firstColWidth = '80px';
+            let dataColWidth = 'auto';
+            
+            if (chart && chart.chartArea) {
+                const chartArea = chart.chartArea;
+                const chartWidth = canvas.offsetWidth;
+                const dataAreaWidth = chartArea.right - chartArea.left;
+                const leftPadding = chartArea.left;
+                
+                // 计算每列宽度
+                const colWidth = dataAreaWidth / weeks.length;
+                dataColWidth = colWidth + 'px';
+                firstColWidth = leftPadding + 'px';
+            }
+            
             let tableHTML = `
                 <h4 style="text-align: center; color: #1e40af; margin-bottom: 15px;">周數據對比</h4>
                 <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table class="growth-table" style="width: 100%; min-width: 600px;">
+                    <table class="growth-table" style="width: 100%; table-layout: fixed;">
                         <thead>
                             <tr style="background: #3b82f6; color: white;">
-                                <th style="width: 80px;">週次</th>`;
+                                <th style="width: ${firstColWidth};">週次</th>`;
             
             // 添加每周的列头
             weeks.forEach(week => {
-                tableHTML += `<th style="min-width: 80px;">${week}</th>`;
+                tableHTML += `<th style="width: ${dataColWidth};">${week}</th>`;
             });
             
             tableHTML += `
-                                <th style="min-width: 80px;">總計</th>
+                                <th style="width: ${dataColWidth};">總計</th>
                             </tr>
                         </thead>
                         <tbody>`;
