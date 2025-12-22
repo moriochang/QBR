@@ -2594,6 +2594,7 @@
             
             // 对比A行
             const totalA = qtyA.reduce((sum, val) => sum + val, 0);
+            const avgA = Math.round(totalA / weeks.length);
             tableHTML += `
                             <tr>
                                 <td style="background: #f0fdf4; font-weight: bold; text-align: center; padding: 10px; white-space: nowrap;">${fileNameA}</td>`;
@@ -2603,11 +2604,12 @@
             });
             
             tableHTML += `
-                                <td style="text-align: center; background: #dcfce7; font-weight: bold; padding: 10px;">${totalA.toLocaleString()}</td>
+                                <td style="text-align: center; background: #dcfce7; font-weight: bold; padding: 10px;">${totalA.toLocaleString()}<span style="color: #059669;"> (${avgA})</span></td>
                             </tr>`;
             
             // 对比B行
             const totalB = qtyB.reduce((sum, val) => sum + val, 0);
+            const avgB = Math.round(totalB / weeks.length);
             tableHTML += `
                             <tr>
                                 <td style="background: #fff7ed; font-weight: bold; text-align: center; padding: 10px; white-space: nowrap;">${fileNameB}</td>`;
@@ -2617,7 +2619,7 @@
             });
             
             tableHTML += `
-                                <td style="text-align: center; background: #fed7aa; font-weight: bold; padding: 10px;">${totalB.toLocaleString()}</td>
+                                <td style="text-align: center; background: #fed7aa; font-weight: bold; padding: 10px;">${totalB.toLocaleString()}<span style="color: #c2410c;"> (${avgB})</span></td>
                             </tr>`;
             
             // 台数增减行
@@ -2636,8 +2638,10 @@
             
             const totalDiffColor = totalDiff > 0 ? '#22c55e' : totalDiff < 0 ? '#ef4444' : '#6b7280';
             const totalDiffSign = totalDiff > 0 ? '+' : '';
+            const avgDiff = Math.round(totalDiff / weeks.length);
+            const avgDiffSign = avgDiff > 0 ? '+' : '';
             diffHTML += `
-                                <td style="text-align: center; color: ${totalDiffColor}; font-weight: bold; background: #e5e7eb; padding: 10px;">${totalDiffSign}${totalDiff.toLocaleString()}</td>
+                                <td style="text-align: center; color: ${totalDiffColor}; font-weight: bold; background: #e5e7eb; padding: 10px;">${totalDiffSign}${totalDiff.toLocaleString()}<span style="color: #6b7280;"> (${avgDiffSign}${avgDiff})</span></td>
                             </tr>`;
             
             tableHTML += diffHTML;
