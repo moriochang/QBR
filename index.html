@@ -2563,6 +2563,19 @@
             tableHTML += `
                                 <th style="padding: 10px; text-align: center; white-space: nowrap;">總計</th>
                             </tr>
+                            <tr style="background: #60a5fa; color: white;">
+                                <td style="padding: 8px; text-align: center; white-space: nowrap; font-weight: bold;">日期</td>`;
+            
+            // 添加每周的日期
+            weeks.forEach((week, index) => {
+                const weekNum = index + 1;
+                const date = dataA.weekDates[weekNum] || dataB.weekDates[weekNum] || '';
+                tableHTML += `<td style="padding: 8px; text-align: center; font-size: 0.9em;">${date}</td>`;
+            });
+            
+            tableHTML += `
+                                <td style="padding: 8px; text-align: center;">-</td>
+                            </tr>
                         </thead>
                         <tbody>`;
             
