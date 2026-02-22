@@ -638,17 +638,17 @@
                 </div>
                 
                 <!-- 圖表和表格並排 -->
-                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 30px; margin-top: 20px;">
-                    <!-- 左側：圖表 -->
+                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; margin-top: 20px;">
+                    <!-- 左側：數據表格 -->
+                    <div id="conversionTable"></div>
+                    
+                    <!-- 右側：圖表 -->
                     <div>
                         <h3 id="conversionChartTitle" style="text-align: center; color: #1e40af; margin-bottom: 15px;"></h3>
                         <div class="chart-container" style="height: 500px;">
                             <canvas id="conversionChart"></canvas>
                         </div>
                     </div>
-                    
-                    <!-- 右側：數據表格 -->
-                    <div id="conversionTable"></div>
                 </div>
             </div>
             
