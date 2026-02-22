@@ -2939,19 +2939,21 @@
             const avgRateA = totalTrafficA > 0 ? (totalQtyA / totalTrafficA * 100) : 0;
             const avgRateB = totalTrafficB > 0 ? (totalQtyB / totalTrafficB * 100) : 0;
             
-            // 计算YoY
-            const yoyTraffic = totalTrafficA > 0 ? ((totalTrafficB - totalTrafficA) / totalTrafficA * 100) : 0;
+            // 计算总YoY
+            const totalYoY = totalTrafficA > 0 ? ((totalTrafficB - totalTrafficA) / totalTrafficA * 100) : 0;
             
             let tableHTML = `
                 <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;">${fileNameB}</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
                         <thead>
                             <tr style="background: #60a5fa; color: white;">
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">週次</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">進店人流</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交台數<br>(五大主機)</th>
-                                <th style="padding: 10px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交轉換率</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">週次</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">進店<br>人流</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>台數</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>轉化率</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">去年同週<br>人流</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">YoY</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -2964,30 +2966,26 @@
                 
                 tableHTML += `
                     <tr style="background: ${index % 2 === 0 ? '#f9fafb' : 'white'};">
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; font-weight: bold;">${week}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${trafficB[index].toLocaleString()}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${qtyB[index]}</td>
-                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: #3b82f6; font-weight: bold;">${rateB[index].toFixed(1)}%</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; font-weight: bold;">${week}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd;">${trafficB[index].toLocaleString()}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd;">${qtyB[index]}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; color: #3b82f6; font-weight: bold;">${rateB[index].toFixed(1)}%</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; color: #6b7280;">${trafficA[index].toLocaleString()}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; color: ${yoyColor}; font-weight: bold;">${yoySign}${yoyWeek.toFixed(1)}%</td>
                     </tr>`;
             });
             
             // 添加总计行
-            const yoyColor = yoyTraffic >= 0 ? '#22c55e' : '#ef4444';
-            const yoySign = yoyTraffic > 0 ? '+' : '';
+            const totalYoyColor = totalYoY >= 0 ? '#22c55e' : '#ef4444';
+            const totalYoySign = totalYoY > 0 ? '+' : '';
             tableHTML += `
                     <tr style="background: #e0f2fe; font-weight: bold;">
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">總計</td>
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${totalTrafficB.toLocaleString()}</td>
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">${totalQtyB}</td>
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: #3b82f6;">${avgRateB.toFixed(1)}%</td>
-                    </tr>
-                    <tr style="background: #f0fdf4; font-weight: bold;">
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;" colspan="2">去年同周人流</td>
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;" colspan="2">${totalTrafficA.toLocaleString()}</td>
-                    </tr>
-                    <tr style="background: #fff7ed; font-weight: bold;">
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">YoY</td>
-                        <td style="padding: 10px; text-align: center; border: 1px solid #ddd; color: ${yoyColor};" colspan="3">${yoySign}${yoyTraffic.toFixed(1)}%</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">總計</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${totalTrafficB.toLocaleString()}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${totalQtyB}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: #3b82f6;">${avgRateB.toFixed(1)}%</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: #6b7280;">${totalTrafficA.toLocaleString()}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: ${totalYoyColor};">${totalYoySign}${totalYoY.toFixed(1)}%</td>
                     </tr>
                         </tbody>
                     </table>
