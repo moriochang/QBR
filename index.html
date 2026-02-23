@@ -627,6 +627,31 @@
                 </div>
             </div>
             
+            <!-- 成交轉換率分析 -->
+            <div class="chart-section">
+                <h2>📊 成交轉換率分析</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>選擇門市：</label>
+                        <div class="quick-buttons" id="conversionStoreButtons"></div>
+                    </div>
+                </div>
+                
+                <!-- 圖表和表格並排 -->
+                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; margin-top: 20px;">
+                    <!-- 左側：數據表格 -->
+                    <div id="conversionTable"></div>
+                    
+                    <!-- 右側：圖表 -->
+                    <div>
+                        <h3 id="conversionChartTitle" style="text-align: center; color: #1e40af; margin-bottom: 15px;"></h3>
+                        <div class="chart-container" style="height: 500px;">
+                            <canvas id="conversionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 銷售數據分析 -->
             <div class="chart-section">
                 <h2>銷售數據分析</h2>
@@ -915,6 +940,7 @@
                     createProductComparisonCharts();
                     createCategoryStoreCharts();
                     createCategoryRevenueStoreCharts();
+                    createConversionCharts();
                     
                     document.getElementById('loading').classList.remove('active');
                     document.getElementById('results').style.display = 'block';
@@ -1035,6 +1061,7 @@
                 createProductComparisonCharts();
                 createCategoryStoreCharts();
                 createCategoryRevenueStoreCharts();
+                createConversionCharts();
                 
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('results').style.display = 'block';
@@ -2166,6 +2193,8 @@
             createStoreButtonsForContainer('comparisonStoreButtons', stores);
             // 創建Trade-in的門市按鈕
             createStoreButtonsForContainer('tradeinStoreButtons', stores);
+            // 創建成交轉換率的門市按鈕
+            createStoreButtonsForContainer('conversionStoreButtons', stores);
         }
         
         function createStoreButtonsForContainer(containerId, stores) {
@@ -2223,7 +2252,7 @@
             selectedStore = store;
             
             // 更新所有容器的按鈕狀態
-            ['storeButtons', 'trafficStoreButtons', 'categoryStoreButtons', 'categoryRevenueStoreButtons', 'comparisonStoreButtons', 'tradeinStoreButtons'].forEach(containerId => {
+            ['storeButtons', 'trafficStoreButtons', 'categoryStoreButtons', 'categoryRevenueStoreButtons', 'comparisonStoreButtons', 'tradeinStoreButtons', 'conversionStoreButtons'].forEach(containerId => {
                 const container = document.getElementById(containerId);
                 if (container) {
                     container.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
@@ -2246,6 +2275,7 @@
             createTrafficCharts();
             createCategoryStoreCharts();
             createCategoryRevenueStoreCharts();
+            createConversionCharts();
         }
         
         function selectClass(cls) {
@@ -2683,6 +2713,283 @@
                 </div>`;
             
             tableHTML += growthHTML;
+            
+            container.innerHTML = tableHTML;
+        }
+        
+        // ========== 成交轉換率分析函數 ==========
+        function createConversionCharts() {
+            const comparableWeeks = getComparableWeeks();
+            const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods'];
+            
+            // 选择要分析的门市
+            const targetStore = selectedStore === 'all' ? '75' : selectedStore;
+            
+            // 更新标题
+            const titleElement = document.getElementById('conversionChartTitle');
+            if (titleElement) {
+                titleElement.textContent = `門市 ${targetStore} - 成交轉換率`;
+            }
+            
+            // 准备数据
+            const weeks = [];
+            const trafficDataA = [];
+            const trafficDataB = [];
+            const mainProductQtyA = [];
+            const mainProductQtyB = [];
+            const conversionRateA = [];
+            const conversionRateB = [];
+            
+            for (let week = 1; week <= comparableWeeks; week++) {
+                weeks.push(`W${week}`);
+                
+                // 对比A的数据
+                const trafficA = dataA.data.find(d => 
+                    d.store == targetStore && 
+                    d.class === 'Traffic' && 
+                    d.weekNum === week
+                );
+                const traffic_qty_A = trafficA ? trafficA.qty : 0;
+                trafficDataA.push(traffic_qty_A);
+                
+                // 计算对比A的五大主机总和
+                const mainQtyA = mainProducts.reduce((sum, product) => {
+                    const item = dataA.data.find(d => 
+                        d.store == targetStore && 
+                        d.class === product && 
+                        d.weekNum === week
+                    );
+                    return sum + (item ? item.qty : 0);
+                }, 0);
+                mainProductQtyA.push(mainQtyA);
+                
+                // 计算对比A的转换率
+                const rateA = traffic_qty_A > 0 ? (mainQtyA / traffic_qty_A * 100) : 0;
+                conversionRateA.push(parseFloat(rateA.toFixed(1)));
+                
+                // 对比B的数据
+                const trafficB = dataB.data.find(d => 
+                    d.store == targetStore && 
+                    d.class === 'Traffic' && 
+                    d.weekNum === week
+                );
+                const traffic_qty_B = trafficB ? trafficB.qty : 0;
+                trafficDataB.push(traffic_qty_B);
+                
+                // 计算对比B的五大主机总和
+                const mainQtyB = mainProducts.reduce((sum, product) => {
+                    const item = dataB.data.find(d => 
+                        d.store == targetStore && 
+                        d.class === product && 
+                        d.weekNum === week
+                    );
+                    return sum + (item ? item.qty : 0);
+                }, 0);
+                mainProductQtyB.push(mainQtyB);
+                
+                // 计算对比B的转换率
+                const rateB = traffic_qty_B > 0 ? (mainQtyB / traffic_qty_B * 100) : 0;
+                conversionRateB.push(parseFloat(rateB.toFixed(1)));
+            }
+            
+            // 创建图表
+            createConversionChart('conversionChart', weeks, trafficDataB, conversionRateB);
+            
+            // 创建表格
+            createConversionTable('conversionTable', weeks, trafficDataA, trafficDataB, 
+                mainProductQtyA, mainProductQtyB, conversionRateA, conversionRateB);
+        }
+        
+        function createConversionChart(canvasId, weeks, trafficData, conversionRate) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+            
+            charts[canvasId] = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: weeks,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: '進店人流',
+                            data: trafficData,
+                            backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                            borderColor: '#22c55e',
+                            borderWidth: 1,
+                            yAxisID: 'y',
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: '成交轉換率',
+                            data: conversionRate,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y1',
+                            order: 1,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#3b82f6',
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'top',
+                                color: '#3b82f6',
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                },
+                                formatter: function(value) {
+                                    return value.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.yAxisID === 'y1') {
+                                        label += context.parsed.y.toFixed(1) + '%';
+                                    } else {
+                                        label += context.parsed.y.toLocaleString();
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '進店人流',
+                                color: '#22c55e',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString();
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '成交轉換率 (%)',
+                                color: '#3b82f6',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createConversionTable(tableId, weeks, trafficA, trafficB, qtyA, qtyB, rateA, rateB) {
+            const container = document.getElementById(tableId);
+            if (!container) return;
+            
+            // 计算总计
+            const totalTrafficA = trafficA.reduce((sum, val) => sum + val, 0);
+            const totalTrafficB = trafficB.reduce((sum, val) => sum + val, 0);
+            const totalQtyA = qtyA.reduce((sum, val) => sum + val, 0);
+            const totalQtyB = qtyB.reduce((sum, val) => sum + val, 0);
+            const avgRateA = totalTrafficA > 0 ? (totalQtyA / totalTrafficA * 100) : 0;
+            const avgRateB = totalTrafficB > 0 ? (totalQtyB / totalTrafficB * 100) : 0;
+            
+            // 计算总YoY
+            const totalYoY = totalTrafficA > 0 ? ((totalTrafficB - totalTrafficA) / totalTrafficA * 100) : 0;
+            
+            let tableHTML = `
+                <div style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="text-align: center; color: #1e40af; margin-bottom: 15px;">${fileNameB}</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                        <thead>
+                            <tr style="background: #60a5fa; color: white;">
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">週次</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">進店<br>人流</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>台數</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>轉化率</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">去年同週<br>人流</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">YoY</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+            
+            // 添加每周数据
+            weeks.forEach((week, index) => {
+                const yoyWeek = trafficA[index] > 0 ? ((trafficB[index] - trafficA[index]) / trafficA[index] * 100) : 0;
+                const yoyColor = yoyWeek >= 0 ? '#22c55e' : '#ef4444';
+                const yoySign = yoyWeek > 0 ? '+' : '';
+                
+                tableHTML += `
+                    <tr style="background: ${index % 2 === 0 ? '#f9fafb' : 'white'};">
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; font-weight: bold;">${week}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd;">${trafficB[index].toLocaleString()}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd;">${qtyB[index]}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; color: #3b82f6; font-weight: bold;">${rateB[index].toFixed(1)}%</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; color: #6b7280;">${trafficA[index].toLocaleString()}</td>
+                        <td style="padding: 6px; text-align: center; border: 1px solid #ddd; color: ${yoyColor}; font-weight: bold;">${yoySign}${yoyWeek.toFixed(1)}%</td>
+                    </tr>`;
+            });
+            
+            // 添加总计行
+            const totalYoyColor = totalYoY >= 0 ? '#22c55e' : '#ef4444';
+            const totalYoySign = totalYoY > 0 ? '+' : '';
+            tableHTML += `
+                    <tr style="background: #e0f2fe; font-weight: bold;">
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">總計</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${totalTrafficB.toLocaleString()}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd;">${totalQtyB}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: #3b82f6;">${avgRateB.toFixed(1)}%</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: #6b7280;">${totalTrafficA.toLocaleString()}</td>
+                        <td style="padding: 8px; text-align: center; border: 1px solid #ddd; color: ${totalYoyColor};">${totalYoySign}${totalYoY.toFixed(1)}%</td>
+                    </tr>
+                        </tbody>
+                    </table>
+                </div>`;
             
             container.innerHTML = tableHTML;
         }
