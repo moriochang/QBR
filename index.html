@@ -2721,14 +2721,16 @@
         function createConversionCharts() {
             const comparableWeeks = getComparableWeeks();
             const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods'];
-            
-            // 选择要分析的门市
-            const targetStore = selectedStore === 'all' ? '75' : selectedStore;
+            const stores = ['75', '76', '77', '81', '84'];
             
             // 更新标题
             const titleElement = document.getElementById('conversionChartTitle');
             if (titleElement) {
-                titleElement.textContent = `門市 ${targetStore} - 成交轉換率`;
+                if (selectedStore === 'all') {
+                    titleElement.textContent = `全部門市 - 成交轉換率`;
+                } else {
+                    titleElement.textContent = `門市 ${selectedStore} - 成交轉換率`;
+                }
             }
             
             // 准备数据
@@ -2743,51 +2745,101 @@
             for (let week = 1; week <= comparableWeeks; week++) {
                 weeks.push(`W${week}`);
                 
-                // 对比A的数据
-                const trafficA = dataA.data.find(d => 
-                    d.store == targetStore && 
-                    d.class === 'Traffic' && 
-                    d.weekNum === week
-                );
-                const traffic_qty_A = trafficA ? trafficA.qty : 0;
-                trafficDataA.push(traffic_qty_A);
+                let traffic_qty_A = 0;
+                let traffic_qty_B = 0;
+                let mainQtyA = 0;
+                let mainQtyB = 0;
                 
-                // 计算对比A的五大主机总和
-                const mainQtyA = mainProducts.reduce((sum, product) => {
-                    const item = dataA.data.find(d => 
+                if (selectedStore === 'all') {
+                    // 全部门市：加总所有门市的数据
+                    stores.forEach(store => {
+                        // 对比A的人流
+                        const trafficA = dataA.data.find(d => 
+                            d.store == store && 
+                            d.class === 'Traffic' && 
+                            d.weekNum === week
+                        );
+                        traffic_qty_A += trafficA ? trafficA.qty : 0;
+                        
+                        // 对比A的五大主机
+                        mainProducts.forEach(product => {
+                            const item = dataA.data.find(d => 
+                                d.store == store && 
+                                d.class === product && 
+                                d.weekNum === week
+                            );
+                            mainQtyA += item ? item.qty : 0;
+                        });
+                        
+                        // 对比B的人流
+                        const trafficB = dataB.data.find(d => 
+                            d.store == store && 
+                            d.class === 'Traffic' && 
+                            d.weekNum === week
+                        );
+                        traffic_qty_B += trafficB ? trafficB.qty : 0;
+                        
+                        // 对比B的五大主机
+                        mainProducts.forEach(product => {
+                            const item = dataB.data.find(d => 
+                                d.store == store && 
+                                d.class === product && 
+                                d.weekNum === week
+                            );
+                            mainQtyB += item ? item.qty : 0;
+                        });
+                    });
+                } else {
+                    // 单个门市
+                    const targetStore = selectedStore;
+                    
+                    // 对比A的数据
+                    const trafficA = dataA.data.find(d => 
                         d.store == targetStore && 
-                        d.class === product && 
+                        d.class === 'Traffic' && 
                         d.weekNum === week
                     );
-                    return sum + (item ? item.qty : 0);
-                }, 0);
+                    traffic_qty_A = trafficA ? trafficA.qty : 0;
+                    
+                    // 计算对比A的五大主机总和
+                    mainQtyA = mainProducts.reduce((sum, product) => {
+                        const item = dataA.data.find(d => 
+                            d.store == targetStore && 
+                            d.class === product && 
+                            d.weekNum === week
+                        );
+                        return sum + (item ? item.qty : 0);
+                    }, 0);
+                    
+                    // 对比B的数据
+                    const trafficB = dataB.data.find(d => 
+                        d.store == targetStore && 
+                        d.class === 'Traffic' && 
+                        d.weekNum === week
+                    );
+                    traffic_qty_B = trafficB ? trafficB.qty : 0;
+                    
+                    // 计算对比B的五大主机总和
+                    mainQtyB = mainProducts.reduce((sum, product) => {
+                        const item = dataB.data.find(d => 
+                            d.store == targetStore && 
+                            d.class === product && 
+                            d.weekNum === week
+                        );
+                        return sum + (item ? item.qty : 0);
+                    }, 0);
+                }
+                
+                trafficDataA.push(traffic_qty_A);
                 mainProductQtyA.push(mainQtyA);
                 
-                // 计算对比A的转换率
+                trafficDataB.push(traffic_qty_B);
+                mainProductQtyB.push(mainQtyB);
+                
+                // 计算转换率
                 const rateA = traffic_qty_A > 0 ? (mainQtyA / traffic_qty_A * 100) : 0;
                 conversionRateA.push(parseFloat(rateA.toFixed(1)));
                 
-                // 对比B的数据
-                const trafficB = dataB.data.find(d => 
-                    d.store == targetStore && 
-                    d.class === 'Traffic' && 
-                    d.weekNum === week
-                );
-                const traffic_qty_B = trafficB ? trafficB.qty : 0;
-                trafficDataB.push(traffic_qty_B);
-                
-                // 计算对比B的五大主机总和
-                const mainQtyB = mainProducts.reduce((sum, product) => {
-                    const item = dataB.data.find(d => 
-                        d.store == targetStore && 
-                        d.class === product && 
-                        d.weekNum === week
-                    );
-                    return sum + (item ? item.qty : 0);
-                }, 0);
-                mainProductQtyB.push(mainQtyB);
-                
-                // 计算对比B的转换率
                 const rateB = traffic_qty_B > 0 ? (mainQtyB / traffic_qty_B * 100) : 0;
                 conversionRateB.push(parseFloat(rateB.toFixed(1)));
             }
