@@ -2723,7 +2723,7 @@
             const mainProducts = ['CPU', 'iPad', 'iPhone', 'Apple Watch', 'AirPods'];
             const stores = ['75', '76', '77', '81', '84'];
             
-            // 更新标题
+            // 更新標題
             const titleElement = document.getElementById('conversionChartTitle');
             if (titleElement) {
                 if (selectedStore === 'all') {
@@ -2733,7 +2733,7 @@
                 }
             }
             
-            // 准备数据
+            // 準備數據
             const weeks = [];
             const trafficDataA = [];
             const trafficDataB = [];
@@ -2751,9 +2751,9 @@
                 let mainQtyB = 0;
                 
                 if (selectedStore === 'all') {
-                    // 全部门市：加总所有门市的数据
+                    // 全部門市：加總所有門市的數據
                     stores.forEach(store => {
-                        // 对比A的人流
+                        // 對比A的人流
                         const trafficA = dataA.data.find(d => 
                             d.store == store && 
                             d.class === 'Traffic' && 
@@ -2761,7 +2761,7 @@
                         );
                         traffic_qty_A += trafficA ? trafficA.qty : 0;
                         
-                        // 对比A的五大主机
+                        // 對比A的五大主機
                         mainProducts.forEach(product => {
                             const item = dataA.data.find(d => 
                                 d.store == store && 
@@ -2771,7 +2771,7 @@
                             mainQtyA += item ? item.qty : 0;
                         });
                         
-                        // 对比B的人流
+                        // 對比B的人流
                         const trafficB = dataB.data.find(d => 
                             d.store == store && 
                             d.class === 'Traffic' && 
@@ -2779,7 +2779,7 @@
                         );
                         traffic_qty_B += trafficB ? trafficB.qty : 0;
                         
-                        // 对比B的五大主机
+                        // 對比B的五大主機
                         mainProducts.forEach(product => {
                             const item = dataB.data.find(d => 
                                 d.store == store && 
@@ -2790,10 +2790,10 @@
                         });
                     });
                 } else {
-                    // 单个门市
+                    // 單個門市
                     const targetStore = selectedStore;
                     
-                    // 对比A的数据
+                    // 對比A的數據
                     const trafficA = dataA.data.find(d => 
                         d.store == targetStore && 
                         d.class === 'Traffic' && 
@@ -2801,7 +2801,7 @@
                     );
                     traffic_qty_A = trafficA ? trafficA.qty : 0;
                     
-                    // 计算对比A的五大主机总和
+                    // 計算對比A的五大主機總和
                     mainQtyA = mainProducts.reduce((sum, product) => {
                         const item = dataA.data.find(d => 
                             d.store == targetStore && 
@@ -2811,7 +2811,7 @@
                         return sum + (item ? item.qty : 0);
                     }, 0);
                     
-                    // 对比B的数据
+                    // 對比B的數據
                     const trafficB = dataB.data.find(d => 
                         d.store == targetStore && 
                         d.class === 'Traffic' && 
@@ -2819,7 +2819,7 @@
                     );
                     traffic_qty_B = trafficB ? trafficB.qty : 0;
                     
-                    // 计算对比B的五大主机总和
+                    // 計算對比B的五大主機總和
                     mainQtyB = mainProducts.reduce((sum, product) => {
                         const item = dataB.data.find(d => 
                             d.store == targetStore && 
@@ -2836,7 +2836,7 @@
                 trafficDataB.push(traffic_qty_B);
                 mainProductQtyB.push(mainQtyB);
                 
-                // 计算转换率
+                // 計算轉換率
                 const rateA = traffic_qty_A > 0 ? (mainQtyA / traffic_qty_A * 100) : 0;
                 conversionRateA.push(parseFloat(rateA.toFixed(1)));
                 
@@ -2844,10 +2844,10 @@
                 conversionRateB.push(parseFloat(rateB.toFixed(1)));
             }
             
-            // 创建图表
+            // 創建圖表
             createConversionChart('conversionChart', weeks, trafficDataB, conversionRateB);
             
-            // 创建表格
+            // 創建表格
             createConversionTable('conversionTable', weeks, trafficDataA, trafficDataB, 
                 mainProductQtyA, mainProductQtyB, conversionRateA, conversionRateB);
         }
@@ -2983,7 +2983,7 @@
             const container = document.getElementById(tableId);
             if (!container) return;
             
-            // 计算总计
+            // 計算總計
             const totalTrafficA = trafficA.reduce((sum, val) => sum + val, 0);
             const totalTrafficB = trafficB.reduce((sum, val) => sum + val, 0);
             const totalQtyA = qtyA.reduce((sum, val) => sum + val, 0);
@@ -2991,7 +2991,7 @@
             const avgRateA = totalTrafficA > 0 ? (totalQtyA / totalTrafficA * 100) : 0;
             const avgRateB = totalTrafficB > 0 ? (totalQtyB / totalTrafficB * 100) : 0;
             
-            // 计算总YoY
+            // 計算總YoY
             const totalYoY = totalTrafficA > 0 ? ((totalTrafficB - totalTrafficA) / totalTrafficA * 100) : 0;
             
             let tableHTML = `
@@ -3003,21 +3003,21 @@
                                 <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">週次</th>
                                 <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">進店<br>人流</th>
                                 <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>台數</th>
-                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>轉化率</th>
+                                <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">成交<br>轉換率</th>
                                 <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">去年同週<br>人流</th>
                                 <th style="padding: 8px; text-align: center; border: 1px solid #ddd; white-space: nowrap;">YoY</th>
                             </tr>
                         </thead>
                         <tbody>`;
             
-            // 添加每周数据
+            // 添加每週數據
             weeks.forEach((week, index) => {
                 const yoyWeek = trafficA[index] > 0 ? ((trafficB[index] - trafficA[index]) / trafficA[index] * 100) : 0;
-                let yoyColor = '#6b7280';  // 默认灰色
+                let yoyColor = '#6b7280';  // 預設灰色
                 if (yoyWeek > 0) {
-                    yoyColor = '#22c55e';  // 正增长绿色
+                    yoyColor = '#22c55e';  // 正增長綠色
                 } else if (yoyWeek < 0) {
-                    yoyColor = '#ef4444';  // 负增长红色
+                    yoyColor = '#ef4444';  // 負增長紅色
                 }
                 const yoySign = yoyWeek > 0 ? '+' : '';
                 
@@ -3032,12 +3032,12 @@
                     </tr>`;
             });
             
-            // 添加总计行
-            let totalYoyColor = '#6b7280';  // 默认灰色
+            // 添加總計行
+            let totalYoyColor = '#6b7280';  // 預設灰色
             if (totalYoY > 0) {
-                totalYoyColor = '#22c55e';  // 正增长绿色
+                totalYoyColor = '#22c55e';  // 正增長綠色
             } else if (totalYoY < 0) {
-                totalYoyColor = '#ef4444';  // 负增长红色
+                totalYoyColor = '#ef4444';  // 負增長紅色
             }
             const totalYoySign = totalYoY > 0 ? '+' : '';
             tableHTML += `
