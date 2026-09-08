@@ -1904,6 +1904,11 @@
                 });
             }
             
+            // 計算整體回收率（總Trade-in / 總iPhone），作為顏色分界基準
+            const totalIphoneForColor = tableData.reduce((sum, row) => sum + row.iphone, 0);
+            const totalTradeinForColor = tableData.reduce((sum, row) => sum + row.tradein, 0);
+            const overallRateForColor = totalIphoneForColor > 0 ? (totalTradeinForColor / totalIphoneForColor * 100) : 0;
+            
             // 找出最高和最低回收率
             const maxRate = Math.max(...recallRateData);
             const minRate = Math.min(...recallRateData);
@@ -2140,9 +2145,10 @@
                     rateColor = '#3b82f6';  // 藍色表示最低
                     rateStyle = 'background-color: #dbeafe;';
                     weekStyle = 'background-color: #dbeafe;';
-                } else if (row.rate >= 10) {
-                    rateColor = '#10b981';  // 綠色表示高回收率
+                } else if (row.rate > overallRateForColor) {
+                    rateColor = '#10b981';  // 綠色表示高於整體回收率
                 }
+                // 低於或等於整體回收率維持黑色（預設）
                 
                 tableHTML += `
                     <tr>
@@ -2167,6 +2173,20 @@
                     <td style="color: #1e40af;">${totalIphone.toLocaleString()}</td>
                     <td style="color: #1e40af;">${totalTradein.toLocaleString()}</td>
                     <td style="color: #1e40af;">${overallRate}%</td>
+                </tr>
+            `;
+            
+            // 計算平均數（總數量 / 週數）
+            const avgIphone = Math.round(totalIphone / tableData.length);
+            const avgTradein = Math.round(totalTradein / tableData.length);
+            
+            // 添加平均行
+            tableHTML += `
+                <tr style="background-color: #f8fafc; font-weight: bold;">
+                    <td colspan="2" style="text-align: center; color: #64748b;">平均</td>
+                    <td style="color: #64748b;">${avgIphone.toLocaleString()}</td>
+                    <td style="color: #64748b;">${avgTradein.toLocaleString()}</td>
+                    <td style="color: #64748b;">-</td>
                 </tr>
             `;
             
